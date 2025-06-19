@@ -1,1 +1,42 @@
+# Python virtual environments
+.venv/
+salUN-env/
+env/
+venv/
+
+# PyTorch model checkpoints and training results
+*.pth
+*.pth.tar
+*.pt
+results/
+mask/
+runs/
+
+# Dataset files
+data/
+*.tar.gz
+*.zip
+*.npz
+*.npy
+
+# Compiled Python files
 __pycache__/
+*.py[cod]
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+
+# IDE/editor folders
+.vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.out
+*.tmp
+*.bak
+*.swp
