@@ -139,6 +139,15 @@ def main():
             pruning=state,
             save_path=args.save_dir,
         )
+        # Also save the model as 'original_model.pth' for generate_mask.py
+
+
+        ckpt_path = os.path.join(args.save_dir, "checkpoint.pth.tar")
+        orig_path = os.path.join(args.save_dir, "original_model.pth")
+
+        if os.path.exists(ckpt_path):
+            shutil.copyfile(ckpt_path, orig_path)
+
         print("one epoch duration:{}".format(time.time() - start_time))
 
     # plot training curve
@@ -157,6 +166,7 @@ def main():
                 all_result["val_ta"][val_pick_best_epoch], val_pick_best_epoch + 1
             )
         )
+    
 
 if __name__ == "__main__":
     main()
