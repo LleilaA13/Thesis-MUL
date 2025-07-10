@@ -2,11 +2,15 @@ import subprocess
 import os
 import shutil
 
-model_path = "../../models/cifar10_resnet18.pth"
-unlearned_model_path = "../../models/cifar10_resnet18_unlearned.pth"
-saliency_dir = "../../masks/"
-results_dir = "../../results/"
-save_dir = "../../models/"
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+os.chdir(project_root)
+
+model_path = "models/cifar10_resnet18.pth"
+unlearned_model_path = "models/cifar10_resnet18_unlearned.pth"
+
+saliency_dir = "masks/"
+results_dir = "results/"
+save_dir = "models/"
 
 os.makedirs(saliency_dir, exist_ok=True)
 os.makedirs(results_dir, exist_ok=True)
