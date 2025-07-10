@@ -5,11 +5,14 @@ env/
 venv/
 
 # PyTorch model checkpoints and training results
-*.pth
-*.pth.tar
-*.pt
-results/
-mask/
+results/*.pth
+results/*.pth.tar
+masks/*.pt
+
+# Allow models folder to track important .pth files
+!models/
+
+# TensorBoard logs, temporary outputs
 runs/
 
 # Dataset files
