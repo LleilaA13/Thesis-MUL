@@ -112,6 +112,8 @@ def main():
                 train_loader_full.dataset
             )
 
+    train_dataset = train_loader_full.dataset
+
     if hasattr(args, "class_to_replace") and args.class_to_replace is not None:
         class_idx = args.class_to_replace
         marked = train_dataset.targets == class_idx
