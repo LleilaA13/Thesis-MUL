@@ -16,7 +16,7 @@ os.makedirs(results_dir, exist_ok=True)
 os.makedirs(save_dir, exist_ok=True)
 
 model_path = os.path.join(results_dir, "0model_SA_best.pth.tar")
-mask_path = os.path.join(saliency_dir, "with_0.7.pt")  # or another threshold
+mask_path = os.path.join(saliency_dir, "with_0.3.pt")  # or another threshold
 unlearned_model_path = os.path.join(
     save_dir, f"unlearned_model_class_{forget_class}.pth.tar")
 """
@@ -44,8 +44,8 @@ print("\nRunning class-based unlearning...")
 subprocess.run([
     "python", "src/classification/main_random.py",
     "--unlearn", "RL",
-    "--unlearn_epochs", "10",
-    "--unlearn_lr", "0.5",
+    "--unlearn_epochs", "5",
+    "--unlearn_lr", "0.005",
     "--num_indexes_to_replace", "4500",
     "--model_path", model_path,  # <-- change here
     "--save_dir", save_dir,
