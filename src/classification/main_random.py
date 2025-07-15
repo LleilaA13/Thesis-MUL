@@ -112,13 +112,11 @@ def main():
                 train_loader_full.dataset
             )
 
-    # ...existing code...
-    if args.forget_class is not None:
-        class_idx = args.forget_class
+    if hasattr(args, "class_to_replace") and args.class_to_replace is not None:
+        class_idx = args.class_to_replace
         marked = train_dataset.targets == class_idx
         forget_dataset.data = train_dataset.data[marked]
         forget_dataset.targets = train_dataset.targets[marked]
-    # ...existing code...
 
     print(f"number of retain dataset {len(retain_dataset)}")
     print(f"number of forget dataset {len(forget_dataset)}")
