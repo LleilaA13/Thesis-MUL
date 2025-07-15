@@ -8,7 +8,7 @@ os.chdir(project_root)
 forget_class = 3  # Example: forget class 3
 
 saliency_dir = f"masks/class_forgetting/"
-results_dir = f"results/class_forgetting/"
+results_dir = f"models/"
 save_dir = f"models/class_forgetting/"
 
 os.makedirs(saliency_dir, exist_ok=True)
@@ -47,7 +47,7 @@ subprocess.run([
     "--unlearn_epochs", "5",
     "--unlearn_lr", "0.005",
     "--num_indexes_to_replace", "4500",
-    "--model_path", model_path,  # <-- change here
+    "--model_path", model_path,
     "--save_dir", save_dir,
     "--mask_path", mask_path,
     "--class_to_replace", str(forget_class)
