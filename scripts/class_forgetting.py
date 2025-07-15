@@ -47,7 +47,7 @@ subprocess.run([
     "--unlearn_epochs", "10",
     "--unlearn_lr", "0.013",
     "--num_indexes_to_replace", "4500",
-    "--model_forget", model_path,
+    "--model_path", model_path,  # <-- change here
     "--save_dir", save_dir,
     "--mask_path", mask_path,
     "--class_to_replace", str(forget_class)
