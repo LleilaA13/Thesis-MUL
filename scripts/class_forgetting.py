@@ -16,7 +16,7 @@ os.makedirs(results_dir, exist_ok=True)
 os.makedirs(save_dir, exist_ok=True)
 
 model_path = os.path.join(results_dir, "0model_SA_best.pth.tar")
-mask_path = os.path.join(saliency_dir, f"mask_class_{forget_class}.pth")
+mask_path = os.path.join(saliency_dir, "with_0.5.pt")  # or another threshold
 unlearned_model_path = os.path.join(
     save_dir, f"unlearned_model_class_{forget_class}.pth.tar")
 """
