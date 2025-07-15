@@ -19,7 +19,7 @@ model_path = os.path.join(results_dir, "0model_SA_best.pth.tar")
 mask_path = os.path.join(saliency_dir, f"mask_class_{forget_class}.pth")
 unlearned_model_path = os.path.join(
     save_dir, f"unlearned_model_class_{forget_class}.pth.tar")
-
+"""
 print("\nTraining ResNet-18 on CIFAR-10...")
 subprocess.run([
     "python", "src/classification/main_train.py",
@@ -29,13 +29,13 @@ subprocess.run([
     "--epochs", "182",
     "--save_dir", results_dir
 ], check=True)
-
+"""
 print("\nGenerating saliency map for class forgetting...")
 subprocess.run([
     "python", "src/classification/generate_mask.py",
     "--save_dir", saliency_dir,
     "--model_path", model_path,
-    "--forget_class", str(forget_class),
+    "--class_to_replace", str(forget_class),
     "--num_indexes_to_replace", "4500",
     "--unlearn_epochs", "1"
 ], check=True)
@@ -50,7 +50,7 @@ subprocess.run([
     "--model_forget", model_path,
     "--save_dir", save_dir,
     "--mask_path", mask_path,
-    "--forget_class", str(forget_class)
+    "--class_to_replace", str(forget_class)
 ], check=True)
 
 print("\nDone.")
