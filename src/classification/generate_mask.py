@@ -186,8 +186,8 @@ def main():
             )
 
     # Filter forget_dataset to only include the specified class
-    if hasattr(args, "forget_class") and args.forget_class is not None:
-        class_idx = args.forget_class
+    if hasattr(args, "class_to_replace") and args.class_to_replace is not None:
+        class_idx = args.class_to_replace
         marked = forget_dataset.targets == class_idx
         forget_dataset.data = forget_dataset.data[marked]
         forget_dataset.targets = forget_dataset.targets[marked]

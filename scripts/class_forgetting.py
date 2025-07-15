@@ -44,8 +44,8 @@ print("\nRunning class-based unlearning...")
 subprocess.run([
     "python", "src/classification/main_random.py",
     "--unlearn", "RL",
-    "--unlearn_epochs", "10",
-    "--unlearn_lr", "0.013",
+    "--unlearn_epochs", "20",
+    "--unlearn_lr", "0.5",
     "--num_indexes_to_replace", "4500",
     "--model_path", model_path,  # <-- change here
     "--save_dir", save_dir,
