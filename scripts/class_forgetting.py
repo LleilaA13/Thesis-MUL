@@ -5,18 +5,20 @@ import shutil
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 os.chdir(project_root)
 
-saliency_dir = "masks/"
-results_dir = "results/"
-save_dir = "models/"
 forget_class = 3  # Example: forget class 3
+
+saliency_dir = f"masks/class_forgetting/"
+results_dir = f"results/class_forgetting/"
+save_dir = f"models/class_forgetting/"
 
 os.makedirs(saliency_dir, exist_ok=True)
 os.makedirs(results_dir, exist_ok=True)
 os.makedirs(save_dir, exist_ok=True)
 
 model_path = os.path.join(results_dir, "0model_SA_best.pth.tar")
-mask_path = os.path.join(saliency_dir, "mask.pth")
-unlearned_model_path = os.path.join(save_dir, "unlearned_model.pth.tar")
+mask_path = os.path.join(saliency_dir, f"mask_class_{forget_class}.pth")
+unlearned_model_path = os.path.join(
+    save_dir, f"unlearned_model_class_{forget_class}.pth.tar")
 
 print("\nTraining ResNet-18 on CIFAR-10...")
 subprocess.run([
@@ -40,7 +42,7 @@ subprocess.run([
 
 print("\nRunning class-based unlearning...")
 subprocess.run([
-    "python", "src/classification/main_forgetting.py",
+    "python", "src/classification/main_random.py",
     "--unlearn", "RL",
     "--unlearn_epochs", "10",
     "--unlearn_lr", "0.013",
