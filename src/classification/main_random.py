@@ -12,7 +12,6 @@ import unlearn
 import utils
 from trainer import validate
 
-
 def main():
     args = arg_parser.parse_args()
 
@@ -59,8 +58,7 @@ def main():
             forget_dataset.targets = -forget_dataset.targets[marked] - 1
         except:
             forget_dataset.labels = -forget_dataset.labels[marked] - 1
-        forget_loader = replace_loader_dataset(
-            forget_dataset, seed=seed, shuffle=True)
+        forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
         retain_dataset = copy.deepcopy(marked_loader.dataset)
         try:
             marked = retain_dataset.targets >= 0
@@ -71,8 +69,7 @@ def main():
             retain_dataset.targets = retain_dataset.targets[marked]
         except:
             retain_dataset.labels = retain_dataset.labels[marked]
-        retain_loader = replace_loader_dataset(
-            retain_dataset, seed=seed, shuffle=True)
+        retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
         assert len(forget_dataset) + len(retain_dataset) == len(
             train_loader_full.dataset
         )
@@ -111,14 +108,6 @@ def main():
             assert len(forget_dataset) + len(retain_dataset) == len(
                 train_loader_full.dataset
             )
-
-    train_dataset = train_loader_full.dataset
-
-    if hasattr(args, "class_to_replace") and args.class_to_replace is not None:
-        class_idx = args.class_to_replace
-        marked = train_dataset.targets == class_idx
-        forget_dataset.data = train_dataset.data[marked]
-        forget_dataset.targets = train_dataset.targets[marked]
 
     print(f"number of retain dataset {len(retain_dataset)}")
     print(f"number of forget dataset {len(forget_dataset)}")
@@ -182,8 +171,7 @@ def main():
         utils.dataset_convert_to_test(forget_loader, args)
         utils.dataset_convert_to_test(test_loader, args)
 
-        shadow_train = torch.utils.data.Subset(
-            retain_dataset, list(range(test_len)))
+        shadow_train = torch.utils.data.Subset(retain_dataset, list(range(test_len)))
         shadow_train_loader = torch.utils.data.DataLoader(
             shadow_train, batch_size=args.batch_size, shuffle=False
         )
