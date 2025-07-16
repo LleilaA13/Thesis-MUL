@@ -4,13 +4,7 @@ salUN-env/
 env/
 venv/
 
-# PyTorch model checkpoints and training results
-results/*.pth
-results/*.pth.tar
-masks/*.pt
 
-# Allow models folder to track important .pth files
-!models/
 
 # TensorBoard logs, temporary outputs
 runs/

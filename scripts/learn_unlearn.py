@@ -14,7 +14,7 @@ os.makedirs(results_dir, exist_ok=True)
 os.makedirs(save_dir, exist_ok=True)
 
 model_path = os.path.join(results_dir, "0model_SA_best.pth.tar")
-mask_path = os.path.join(saliency_dir, "mask.pth")
+mask_path = os.path.join(saliency_dir, "with.pth")
 unlearned_model_path = os.path.join(save_dir, "unlearned_model.pth.tar")
 
 # Training is skipped because checkpoint already exists
