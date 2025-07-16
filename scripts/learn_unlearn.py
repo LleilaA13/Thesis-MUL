@@ -6,7 +6,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 os.chdir(project_root)
 
 saliency_dir = "masks/"
-results_dir = "results/"
+results_dir = "models/"
 save_dir = "models/"
 
 os.makedirs(saliency_dir, exist_ok=True)
@@ -18,7 +18,7 @@ mask_path = os.path.join(saliency_dir, "mask.pth")
 unlearned_model_path = os.path.join(save_dir, "unlearned_model.pth.tar")
 
 
-
+'''
 print("\nTraining ResNet-18 on CIFAR-10...")
 subprocess.run([
     "python", "src/classification/main_train.py",
@@ -28,7 +28,7 @@ subprocess.run([
     "--epochs", "182",
     "--save_dir", results_dir
 ], check=True)
-
+'''
 print("\nGenerating saliency map...")
 subprocess.run([
     "python", "src/classification/generate_mask.py",
