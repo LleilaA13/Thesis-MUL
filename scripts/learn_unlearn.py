@@ -6,7 +6,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 os.chdir(project_root)
 
 saliency_dir = "masks/"
-results_dir = "models/"
+results_dir = "results/"
 save_dir = "models/"
 
 os.makedirs(saliency_dir, exist_ok=True)
@@ -14,10 +14,9 @@ os.makedirs(results_dir, exist_ok=True)
 os.makedirs(save_dir, exist_ok=True)
 
 model_path = os.path.join(results_dir, "0model_SA_best.pth.tar")
-mask_path = os.path.join(saliency_dir, "with.pth")
+mask_path = os.path.join(saliency_dir, "with_0.5.pt")
 unlearned_model_path = os.path.join(save_dir, "unlearned_model.pth.tar")
 
-<<<<<<< HEAD
 
 '''
 print("\nTraining ResNet-18 on CIFAR-10...")
@@ -30,7 +29,6 @@ subprocess.run([
     "--save_dir", results_dir
 ], check=True)
 '''
-=======
 # Training is skipped because checkpoint already exists
 # print("\nTraining ResNet-18 on CIFAR-10...")
 # subprocess.run([
@@ -42,7 +40,6 @@ subprocess.run([
 #     "--save_dir", results_dir
 # ], check=True)
 
->>>>>>> 4aeb14a43a539f0ffcc691aa6cf2976a6686758f
 print("\nGenerating saliency map...")
 subprocess.run([
     "python", "src/classification/generate_mask.py",
