@@ -3,12 +3,14 @@ import os
 from collections import OrderedDict
 
 import arg_parser
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim
 import torch.utils.data
 import unlearn
 import utils
+from torch.utils.data import Subset
 
 
 def save_gradient_ratio(data_loaders, model, criterion, args):
@@ -54,7 +56,8 @@ def save_gradient_ratio(data_loaders, model, criterion, args):
         hard_dict = {}
 
         # Concatenate all tensors into a single tensor
-        all_elements = - torch.cat([tensor.flatten() for tensor in gradients.values()])
+        all_elements = - torch.cat([tensor.flatten()
+                                   for tensor in gradients.values()])
 
         # Calculate the threshold index for the top 10% elements
         threshold_index = int(len(all_elements) * i)
@@ -67,7 +70,7 @@ def save_gradient_ratio(data_loaders, model, criterion, args):
         for key, tensor in gradients.items():
             num_elements = tensor.numel()
             # tensor_positions = positions[start_index: start_index + num_elements]
-            tensor_ranks = ranks[start_index : start_index + num_elements]
+            tensor_ranks = ranks[start_index: start_index + num_elements]
 
             sorted_positions = tensor_ranks.reshape(tensor.shape)
             sorted_dict_positions[key] = sorted_positions
@@ -79,7 +82,8 @@ def save_gradient_ratio(data_loaders, model, criterion, args):
             hard_dict[key] = threshold_tensor
             start_index += num_elements
 
-        torch.save(hard_dict, os.path.join(args.save_dir, "with_{}.pt".format(i)))
+        torch.save(hard_dict, os.path.join(
+            args.save_dir, "with_{}.pt".format(i)))
 
 
 def main():
@@ -128,7 +132,8 @@ def main():
             forget_dataset.targets = -forget_dataset.targets[marked] - 1
         except:
             forget_dataset.labels = -forget_dataset.labels[marked] - 1
-        forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
+        forget_loader = replace_loader_dataset(
+            forget_dataset, seed=seed, shuffle=True)
         retain_dataset = copy.deepcopy(marked_loader.dataset)
         try:
             marked = retain_dataset.targets >= 0
@@ -139,7 +144,8 @@ def main():
             retain_dataset.targets = retain_dataset.targets[marked]
         except:
             retain_dataset.labels = retain_dataset.labels[marked]
-        retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
+        retain_loader = replace_loader_dataset(
+            retain_dataset, seed=seed, shuffle=True)
         assert len(forget_dataset) + len(retain_dataset) == len(
             train_loader_full.dataset
         )
@@ -179,6 +185,33 @@ def main():
             assert len(forget_dataset) + len(retain_dataset) == len(
                 train_loader_full.dataset
             )
+
+    # Filter forget_dataset to only include the specified class
+    if hasattr(args, "class_to_replace") and args.class_to_replace is not None:
+        class_idx = args.class_to_replace
+        marked = forget_dataset.targets == class_idx
+        forget_dataset.data = forget_dataset.data[marked]
+        forget_dataset.targets = forget_dataset.targets[marked]
+
+    # If forget set is empty and no class_to_replace, do random data forgetting
+    if len(forget_dataset) == 0 and not (hasattr(args, "class_to_replace") and args.class_to_replace is not None):
+        num_forget = args.num_indexes_to_replace
+        all_indices = np.arange(len(marked_loader.dataset))
+        np.random.seed(args.seed if hasattr(args, "seed") else 0)
+        forget_indices = np.random.choice(
+            all_indices, num_forget, replace=False)
+        forget_dataset.data = marked_loader.dataset.data[forget_indices]
+        forget_dataset.targets = marked_loader.dataset.targets[forget_indices]
+        forget_loader = replace_loader_dataset(
+            forget_dataset, seed=seed, shuffle=True
+        )
+        # Update retain set as well
+        retain_indices = np.setdiff1d(all_indices, forget_indices)
+        retain_dataset.data = marked_loader.dataset.data[retain_indices]
+        retain_dataset.targets = marked_loader.dataset.targets[retain_indices]
+        retain_loader = replace_loader_dataset(
+            retain_dataset, seed=seed, shuffle=True
+        )
 
     print(f"number of retain dataset {len(retain_dataset)}")
     print(f"number of forget dataset {len(forget_dataset)}")
