@@ -17,6 +17,20 @@ model_path = os.path.join(results_dir, "0model_SA_best.pth.tar")
 mask_path = os.path.join(saliency_dir, "with.pth")
 unlearned_model_path = os.path.join(save_dir, "unlearned_model.pth.tar")
 
+<<<<<<< HEAD
+
+'''
+print("\nTraining ResNet-18 on CIFAR-10...")
+subprocess.run([
+    "python", "src/classification/main_train.py",
+    "--arch", "resnet18",
+    "--dataset", "cifar10",
+    "--lr", "0.1",
+    "--epochs", "182",
+    "--save_dir", results_dir
+], check=True)
+'''
+=======
 # Training is skipped because checkpoint already exists
 # print("\nTraining ResNet-18 on CIFAR-10...")
 # subprocess.run([
@@ -28,6 +42,7 @@ unlearned_model_path = os.path.join(save_dir, "unlearned_model.pth.tar")
 #     "--save_dir", results_dir
 # ], check=True)
 
+>>>>>>> 4aeb14a43a539f0ffcc691aa6cf2976a6686758f
 print("\nGenerating saliency map...")
 subprocess.run([
     "python", "src/classification/generate_mask.py",
