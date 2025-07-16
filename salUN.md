@@ -27,6 +27,10 @@ Inspired by **input saliency maps** (used in model interpretability), SALUN intr
 2. Use a **hard threshold** to identify which weights are “salient.”
 3. Apply MU techniques (like random labeling) only to those salient weights.
 
+### Concepts:
+- Integrate weight saliency with random labeling
+- Classification: salUN assigns a random image label to a forgetting data point and then fine-tunes the salient weights on the randomly labeled forget set
+- Generation: salUN associates the forgetting concept, rperesented by the prompt condition c witha  misaligned image x' that does not belong to concept c.
 ---
 
 ## 🧠 Methodology
