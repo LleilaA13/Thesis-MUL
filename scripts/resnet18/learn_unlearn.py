@@ -29,17 +29,6 @@ subprocess.run([
     "--save_dir", results_dir
 ], check=True)
 '''
-# Training is skipped because checkpoint already exists
-# print("\nTraining ResNet-18 on CIFAR-10...")
-# subprocess.run([
-#     "python", "src/classification/main_train.py",
-#     "--arch", "resnet18",
-#     "--dataset", "cifar10",
-#     "--lr", "0.1",
-#     "--epochs", "182",
-#     "--save_dir", results_dir
-# ], check=True)
-
 print("\nGenerating saliency map...")
 subprocess.run([
     "python", "src/classification/generate_mask.py",
@@ -56,12 +45,12 @@ subprocess.run([
     "--unlearn_epochs", "10",
     "--unlearn_lr", "0.013",
     "--num_indexes_to_replace", "4500",
-    "--model_path", model_path,  # <-- changed from --model_forget
+    "--model_path", model_path,
     "--save_dir", save_dir,
     "--mask_path", mask_path,
 ], check=True)
 
-# Rename output model (if it overwrote original)
+
 if os.path.exists(model_path):
     shutil.move(model_path, unlearned_model_path)
     print(f"\nUnlearned model saved as: {unlearned_model_path}")
