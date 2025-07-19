@@ -20,6 +20,7 @@ from imagenet import prepare_data
 from models import *
 from torchvision import transforms
 
+
 __all__ = [
     "setup_model_dataset",
     "AverageMeter",
@@ -48,7 +49,8 @@ def save_checkpoint(
     torch.save(state, filepath)
     if is_SA_best:
         shutil.copyfile(
-            filepath, os.path.join(save_path, str(pruning) + "model_SA_best.pth.tar")
+            filepath, os.path.join(save_path, str(
+                pruning) + "model_SA_best.pth.tar")
         )
 
 
@@ -231,11 +233,16 @@ def setup_model_dataset(args):
         )
         train_ys = torch.load(args.train_y_file)
         val_ys = torch.load(args.val_y_file)
-        model = model_dict[args.arch](num_classes=classes, imagenet=True)
+        if args.imagenet_arch == "inceptionv1":
+            from lucent.modelzoo import inceptionv1
+            model = inceptionv1()
+        else:
+            model = model_dict[args.arch](num_classes=classes, imagenet=True)
 
         model.normalize = normalization
         if args.class_to_replace is None:
-            loaders = prepare_data(dataset="imagenet", batch_size=args.batch_size)
+            loaders = prepare_data(
+                dataset="imagenet", batch_size=args.batch_size)
             train_loader, val_loader = loaders["train"], loaders["val"]
             return model, train_loader, val_loader
         else:
