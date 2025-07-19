@@ -19,7 +19,8 @@ def plot_training_curve(training_result, save_dir, prefix):
 
 
 def save_unlearn_checkpoint(model, evaluation_result, args):
-    state = {"state_dict": model.state_dict(), "evaluation_result": evaluation_result}
+    state = {"state_dict": model.state_dict(
+    ), "evaluation_result": evaluation_result}
     utils.save_checkpoint(state, False, args.save_dir, args.unlearn)
     utils.save_checkpoint(
         evaluation_result,
@@ -56,7 +57,8 @@ def _iterative_unlearn_impl(unlearn_iter_func):
         decreasing_lr = list(map(int, args.decreasing_lr.split(",")))
         if args.rewind_epoch != 0:
             initialization = torch.load(
-                args.rewind_pth, map_location=torch.device("cuda:" + str(args.gpu))
+                args.rewind_pth, map_location=torch.device(
+                    "cuda:" + str(args.gpu))
             )
             current_mask = extract_mask(model.state_dict())
             remove_prune(model)
@@ -64,7 +66,7 @@ def _iterative_unlearn_impl(unlearn_iter_func):
             # rewind, initialization is a full model architecture without masks
             model.load_state_dict(initialization, strict=True)
             prune_model_custom(model, current_mask)
-    
+
         optimizer = torch.optim.SGD(
             model.parameters(),
             args.unlearn_lr,
@@ -90,7 +92,8 @@ def _iterative_unlearn_impl(unlearn_iter_func):
                     )
                 )
             )
-            scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda0)
+            scheduler = torch.optim.lr_scheduler.LambdaLR(
+                optimizer, lr_lambda=lambda0)
         else:
             scheduler = torch.optim.lr_scheduler.MultiStepLR(
                 optimizer, milestones=decreasing_lr, gamma=0.1
