@@ -17,10 +17,10 @@ def prepare_data(
     shuffle=True,
     train_subset_indices=None,
     val_subset_indices=None,
-    data_path="/localscratch/dataset",
+    data_path="/media/pinas/datasets/imagenet_zeus",
 ):
     path = os.path.join(data_path, "huggingface")
-    if dataset == "imagenet":
+    if dataset == "imagenet_zeus":
         train_set = load_dataset(
             "imagenet-1k", use_auth_token=True, split="train", cache_dir=path
         )
@@ -133,7 +133,8 @@ def prepare_data(
     validation_set.set_transform(transform=validation_transform)
 
     if train_subset_indices is not None:
-        forget_indices = torch.ones_like(train_subset_indices) - train_subset_indices
+        forget_indices = torch.ones_like(
+            train_subset_indices) - train_subset_indices
         train_subset_indices = torch.nonzero(train_subset_indices)
 
         forget_indices = torch.nonzero(forget_indices)
