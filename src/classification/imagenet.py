@@ -172,7 +172,7 @@ if __name__ == "__main__":
     ys["train"] = []
     ys["val"] = []
     loaders = prepare_data(
-        dataset="imagenet", batch_size=1, shuffle=False, data_path="./data"
+        dataset="imagenet_zeus", batch_size=1, shuffle=False, data_path="./data"
     )
     for data in tqdm(loaders["val"], ncols=100):
         x, y = get_x_y_from_data_dict(data, "cpu")
