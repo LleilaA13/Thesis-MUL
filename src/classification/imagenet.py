@@ -19,31 +19,31 @@ def prepare_data(
     val_subset_indices=None,
     data_path="/media/pinas/datasets/imagenet_zeus",
 ):
-  
-   if dataset == "imagenet_zeus":
-    train_dir = os.path.join(data_path, "train")
-    val_dir = os.path.join(data_path, "val")
 
-    transform_train = torchvision.transforms.Compose([
-        torchvision.transforms.RandomResizedCrop(224),
-        torchvision.transforms.RandomHorizontalFlip(),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                         std=[0.229, 0.224, 0.225]),
-    ])
+    if dataset == "imagenet_zeus":
+        train_dir = os.path.join(data_path, "train")
+        val_dir = os.path.join(data_path, "val")
 
-    transform_val = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(256),
-        torchvision.transforms.CenterCrop(224),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                         std=[0.229, 0.224, 0.225]),
-    ])
+        transform_train = torchvision.transforms.Compose([
+            torchvision.transforms.RandomResizedCrop(224),
+            torchvision.transforms.RandomHorizontalFlip(),
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                            std=[0.229, 0.224, 0.225]),
+        ])
 
-     train_set = torchvision.datasets.ImageFolder(train_dir, transform=transform_train)
-     validation_set = torchvision.datasets.ImageFolder(val_dir, transform=transform_val)
+        transform_val = torchvision.transforms.Compose([
+            torchvision.transforms.Resize(256),
+            torchvision.transforms.CenterCrop(224),
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                            std=[0.229, 0.224, 0.225]),
+        ])
 
-   elif dataset == "tiny_imagenet":
+        train_set = torchvision.datasets.ImageFolder(train_dir, transform=transform_train)
+        validation_set = torchvision.datasets.ImageFolder(val_dir, transform=transform_val)
+
+    elif dataset == "tiny_imagenet":
         train_set = load_dataset(
             "Maysee/tiny-imagenet", use_auth_token=True, split="train", cache_dir=path
         )
@@ -79,7 +79,7 @@ def prepare_data(
             examples["image"] = [transform(x) for x in examples["image"]]
             return examples
 
-   elif dataset == "flowers102":
+    elif dataset == "flowers102":
         train_set = load_dataset(
             "nelorth/oxford-flowers", use_auth_token=True, split="train", cache_dir=path
         )
