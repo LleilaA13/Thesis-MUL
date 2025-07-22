@@ -233,7 +233,7 @@ def setup_model_dataset(args):
         )
         train_ys = torch.load(args.train_y_file)
         val_ys = torch.load(args.val_y_file)
-        if args.imagenet_arch == "inceptionv1":
+        if args.arch == "inceptionv1":
             from lucent.modelzoo import inceptionv1
             model = inceptionv1()
         else:
@@ -243,6 +243,43 @@ def setup_model_dataset(args):
         if args.class_to_replace is None:
             loaders = prepare_data(
                 dataset="imagenet", batch_size=args.batch_size)
+            train_loader, val_loader = loaders["train"], loaders["val"]
+            return model, train_loader, val_loader
+        else:
+            train_subset_indices = torch.ones_like(train_ys)
+            val_subset_indices = torch.ones_like(val_ys)
+            train_subset_indices[train_ys == args.class_to_replace] = 0
+            val_subset_indices[val_ys == args.class_to_replace] = 0
+            loaders = prepare_data(
+                dataset="imagenet",
+                batch_size=args.batch_size,
+                train_subset_indices=train_subset_indices,
+                val_subset_indices=val_subset_indices,
+            )
+            retain_loader = loaders["train"]
+            forget_loader = loaders["fog"]
+            val_loader = loaders["val"]
+            return model, retain_loader, forget_loader, val_loader
+    elif args.dataset == "imagenet_zeus":
+        print("[DEBUG] Entered imagenet_zeus block")
+
+        print("[*] Using custom dataset: imagenet_zeus (treated as imagenet)")
+        classes = 1000
+        normalization = NormalizeByChannelMeanStd(
+        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        )
+        train_ys = torch.load(args.train_y_file)
+        val_ys = torch.load(args.val_y_file)
+        if args.imagenet_arch == "inceptionv1":
+            from lucent.modelzoo import inceptionv1
+            model = inceptionv1()
+        else:
+            model = model_dict[args.arch](num_classes=classes, imagenet=True)
+
+        model.normalize = normalization
+        if args.class_to_replace is None:
+            loaders = prepare_data(
+              dataset="imagenet", batch_size=args.batch_size)
             train_loader, val_loader = loaders["train"], loaders["val"]
             return model, train_loader, val_loader
         else:

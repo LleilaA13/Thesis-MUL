@@ -84,7 +84,30 @@ def save_gradient_ratio(data_loaders, model, criterion, args):
 
 def main():
     args = arg_parser.parse_args()
+    if args.subset_indices_path:
+     import torch
 
+     print(f"[*] Loading forget mask from {args.subset_indices_path}")
+     subset_mask = torch.load(args.subset_indices_path)
+     subset_mask = subset_mask.bool()
+
+
+     full_labels = torch.load(args.train_y_file)
+
+     marked_labels = []
+     for i, is_forget in enumerate(subset_mask):
+         label = full_labels[i].item()
+         if is_forget:
+             marked_labels.append(-label - 1)  # SalUn convention: forget sample
+         else:
+             marked_labels.append(label)
+
+     marked_labels = torch.tensor(marked_labels).long()
+     marked_path = "marked_labels.pt"
+     torch.save(marked_labels, marked_path)
+
+     args.train_y_file = marked_path  # Use the marked labels in downstream setup
+  
     if torch.cuda.is_available():
         torch.cuda.set_device(int(args.gpu))
         device = torch.device(f"cuda:{int(args.gpu)}")

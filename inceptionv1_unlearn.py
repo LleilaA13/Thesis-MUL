@@ -26,7 +26,7 @@ MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.3.pt")  # or another threshold
 
 os.makedirs(SALIENCY_DIR, exist_ok=True)
 os.makedirs(SAVE_DIR, exist_ok=True)
-
+"""
 # === Step 1: Generate forget mask for cat classes ===
 if not os.path.exists(FORGET_MASK_PATH):
     print("[*] Generating forget mask for cat classes...")
@@ -49,13 +49,13 @@ if not os.path.exists(FORGET_MASK_PATH):
 
     torch.save(mask, FORGET_MASK_PATH)
     print(f"[✓] Saved forget mask for {int(mask.sum().item())} cat samples.")
-
+"""
 num_to_forget = int(torch.load(FORGET_MASK_PATH).sum().item())
 
 # === Step 2: Generate saliency mask ===
 print("\n[*] Generating saliency mask using generate_mask.py...")
 subprocess.run([
-    "python", os.path.join(project_root, "src/classification/generate_mask.py"),
+    "python", os.path.join(current_dir, "src/classification/generate_mask.py"),
     "--save_dir", SALIENCY_DIR,
     "--model_path", MODEL_PATH,
     "--subset_indices_path", FORGET_MASK_PATH,
@@ -68,7 +68,7 @@ subprocess.run([
 # === Step 3: Run SalUn unlearning ===
 print("\n[*] Running SalUn unlearning using main_random.py...")
 subprocess.run([
-    "python", os.path.join(project_root, "src/classification/main_random.py"),
+    "python", os.path.join(current_dir, "src/classification/main_random.py"),
     "--unlearn", "RL",
     "--unlearn_epochs", "10",
     "--unlearn_lr", "0.01",

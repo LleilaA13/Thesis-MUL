@@ -129,6 +129,14 @@ def parse_args():
         default=None,
         help="Number of data to forget",
     )
+
+    parser.add_argument(
+        "--subset_indices_path",
+        type=str,
+        default=None,
+        help="Path to .pt binary mask indicating forget samples",
+    )
+
     parser.add_argument(
         "--class_to_replace", type=int, default=-1, help="Specific class to forget"
     )
