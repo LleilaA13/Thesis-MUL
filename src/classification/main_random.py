@@ -77,19 +77,25 @@ def main():
         from torch.utils.data import Subset
 
         original_dataset = marked_loader.dataset
-        if isinstance(marked_loader, Subset):
-            indices = marked_loader.indices
-            targets = [original_dataset.targets[i] for i in indices]
-            imgs = [original_dataset.imgs[i] for i in indices]
+        if isinstance(original_dataset, Subset):
+            indices = original_dataset.indices
+            dataset = original_dataset.dataset
+   
+            print("[DEBUG] Overriding dataset targets with train_y_file")
+            marked_labels = torch.load(args.train_y_file)
+            dataset.targets = marked_labels.tolist()
+
+            targets = [dataset.targets[i] for i in indices]
+            imgs = [dataset.imgs[i] for i in indices]
 
             forget_ids = [i for i, t in zip(indices, targets) if t < 0]
             retain_ids = [i for i, t in zip(indices, targets) if t >= 0]
 
             for i in forget_ids:
-                original_dataset.targets[i] = -original_dataset.targets[i] - 1
+                dataset.targets[i] = -dataset.targets[i] - 1
 
-            forget_dataset = Subset(original_dataset, forget_ids)
-            retain_dataset = Subset(original_dataset, retain_ids)
+            forget_dataset = Subset(dataset, forget_ids)
+            retain_dataset = Subset(dataset, retain_ids)
         else:
             marked = marked_loader.targets < 0
             forget_dataset = copy.deepcopy(marked_loader)

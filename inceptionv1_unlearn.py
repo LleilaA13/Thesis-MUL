@@ -62,7 +62,9 @@ subprocess.run([
     "--num_indexes_to_replace", str(num_to_forget),
     "--unlearn_epochs", "1",
     "--arch", ARCH,
-    "--dataset", DATASET
+    "--dataset", DATASET,
+    "--train_y_file", os.path.join(current_dir,"labels", "train_ys.pth"),
+    "--val_y_file", os.path.join(current_dir,"labels", "val_ys.pth")
 ], check=True)
 
 # === Step 3: Run SalUn unlearning ===
@@ -78,7 +80,9 @@ subprocess.run([
     "--mask_path", MASK_PATH,
     "--subset_indices_path", FORGET_MASK_PATH,
     "--arch", ARCH,
-    "--dataset", DATASET
+    "--dataset", DATASET,
+    "--train_y_file", os.path.join(current_dir,"labels", "train_ys.pth"),
+    "--val_y_file", os.path.join(current_dir,"labels", "val_ys.pth")
 ], check=True)
 
 print("\n[✓] Cat-class forgetting complete using SalUn + InceptionV1.")
