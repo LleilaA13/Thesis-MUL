@@ -270,7 +270,7 @@ def setup_model_dataset(args):
         )
         train_ys = torch.load(args.train_y_file)
         val_ys = torch.load(args.val_y_file)
-        if args.imagenet_arch == "inceptionv1":
+        if args.arch == "inceptionv1":
             from lucent.modelzoo import inceptionv1
             model = inceptionv1()
         else:

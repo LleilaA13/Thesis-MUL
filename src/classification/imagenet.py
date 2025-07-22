@@ -13,7 +13,7 @@ def prepare_data(
     val_subset_indices=None,
     data_path="/media/pinas/datasets/imagenet_zeus",
 ):
-    if dataset == "imagenet_zeus":
+    if dataset in ["imagenet", "imagenet_zeus"]:
         train_dir = os.path.join(data_path, "train")
         val_dir = os.path.join(data_path, "val")
 

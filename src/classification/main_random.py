@@ -74,40 +74,36 @@ def main():
             train_loader_full.dataset
         )
     else:
-        try:
-            marked = forget_dataset.targets < 0
+        from torch.utils.data import Subset
+
+        original_dataset = marked_loader.dataset
+        if isinstance(marked_loader, Subset):
+            indices = marked_loader.indices
+            targets = [original_dataset.targets[i] for i in indices]
+            imgs = [original_dataset.imgs[i] for i in indices]
+
+            forget_ids = [i for i, t in zip(indices, targets) if t < 0]
+            retain_ids = [i for i, t in zip(indices, targets) if t >= 0]
+
+            for i in forget_ids:
+                original_dataset.targets[i] = -original_dataset.targets[i] - 1
+
+            forget_dataset = Subset(original_dataset, forget_ids)
+            retain_dataset = Subset(original_dataset, retain_ids)
+        else:
+            marked = marked_loader.targets < 0
+            forget_dataset = copy.deepcopy(marked_loader)
             forget_dataset.data = forget_dataset.data[marked]
             forget_dataset.targets = -forget_dataset.targets[marked] - 1
-            forget_loader = replace_loader_dataset(
-                forget_dataset, seed=seed, shuffle=True
-            )
-            retain_dataset = copy.deepcopy(marked_loader.dataset)
+
+            retain_dataset = copy.deepcopy(marked_loader)
             marked = retain_dataset.targets >= 0
             retain_dataset.data = retain_dataset.data[marked]
             retain_dataset.targets = retain_dataset.targets[marked]
-            retain_loader = replace_loader_dataset(
-                retain_dataset, seed=seed, shuffle=True
-            )
-            assert len(forget_dataset) + len(retain_dataset) == len(
-                train_loader_full.dataset
-            )
-        except:
-            marked = forget_dataset.targets < 0
-            forget_dataset.imgs = forget_dataset.imgs[marked]
-            forget_dataset.targets = -forget_dataset.targets[marked] - 1
-            forget_loader = replace_loader_dataset(
-                forget_dataset, seed=seed, shuffle=True
-            )
-            retain_dataset = copy.deepcopy(marked_loader.dataset)
-            marked = retain_dataset.targets >= 0
-            retain_dataset.imgs = retain_dataset.imgs[marked]
-            retain_dataset.targets = retain_dataset.targets[marked]
-            retain_loader = replace_loader_dataset(
-                retain_dataset, seed=seed, shuffle=True
-            )
-            assert len(forget_dataset) + len(retain_dataset) == len(
-                train_loader_full.dataset
-            )
+
+        forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
+        retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
+ 
 
     print(f"number of retain dataset {len(retain_dataset)}")
     print(f"number of forget dataset {len(forget_dataset)}")
