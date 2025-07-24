@@ -166,45 +166,37 @@ def main():
         assert len(forget_dataset) + len(retain_dataset) == len(
             train_loader_full.dataset
         )
+    
     else:
         from torch.utils.data import Subset
 
-        original_dataset = marked_loader.dataset
-        if isinstance(original_dataset, Subset):
-            indices = original_dataset.indices
-            dataset = original_dataset.dataset
-            print("[DEBUG] Overriding dataset targets with train_y_file")
-            marked_labels = torch.load(args.train_y_file)
-            dataset.targets = marked_labels.tolist()
-
-            targets = [dataset.targets[i] for i in indices]
-            
-            print("[DEBUG] First 20 overridden targets:", targets[:20])
-            print("[DEBUG] #Total indices:", len(indices))
-            print("[DEBUG] #Forget targets (<0):", sum(t < 0 for t in targets))
-            print("[DEBUG] #Retain targets (>=0):", sum(t >= 0 for t in targets))
-
-            imgs = [dataset.imgs[i] for i in indices]
-
-            forget_ids = [i for i, t in zip(indices, targets) if t < 0]
-            retain_ids = [i for i, t in zip(indices, targets) if t >= 0]
-
-            for i in forget_ids:
-                dataset.targets[i] = -dataset.targets[i] - 1
-
-            forget_dataset = Subset(dataset, forget_ids)
-            retain_dataset = Subset(dataset, retain_ids)
+        # Load full dataset and the forget mask
+        if isinstance(marked_loader.dataset, Subset):
+         dataset = marked_loader.dataset.dataset
         else:
-            marked = marked_loader.targets < 0
-            forget_dataset = copy.deepcopy(marked_loader)
-            forget_dataset.data = forget_dataset.data[marked]
-            forget_dataset.targets = -forget_dataset.targets[marked] - 1
+         dataset = marked_loader.dataset
 
-            retain_dataset = copy.deepcopy(marked_loader)
-            marked = retain_dataset.targets >= 0
-            retain_dataset.data = retain_dataset.data[marked]
-            retain_dataset.targets = retain_dataset.targets[marked]
+        forget_mask = torch.load(args.subset_indices_path).bool()  # 1 = forget, 0 = retain
 
+        print("[DEBUG] Loaded forget mask of length:", len(forget_mask))
+        print("[DEBUG] #Forget samples:", forget_mask.sum().item())
+        print("[DEBUG] #Retain samples:", (~forget_mask).sum().item())
+
+        # Construct forget and retain indices
+        all_indices = list(range(len(forget_mask)))
+        forget_ids = [i for i, flag in enumerate(forget_mask) if flag]
+        retain_ids = [i for i, flag in enumerate(forget_mask) if not flag]
+
+        # Optionally apply SalUn convention to forget labels
+        for i in forget_ids:
+            dataset.targets[i] = -dataset.targets[i] - 1
+
+
+        # Create subset datasets
+        forget_dataset = Subset(dataset, forget_ids)
+        retain_dataset = Subset(dataset, retain_ids)
+
+        # Wrap in DataLoaders
         forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
         retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
 

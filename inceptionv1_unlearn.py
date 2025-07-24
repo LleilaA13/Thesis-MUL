@@ -18,7 +18,7 @@ DATASET = "imagenet_zeus"
 ARCH = "inceptionv1"
 IMAGENET_DIR = "/media/pinas/datasets/imagenet_zeus"
 
-MODEL_PATH = os.path.join(current_dir, "pretrained/inceptionv1.pth")
+MODEL_PATH = os.path.join(current_dir, "src/classification/inceptionv1.pth")
 FORGET_MASK_PATH = os.path.join(current_dir, "cat_forget_indices.pt")
 SALIENCY_DIR = os.path.join(current_dir, "masks/inceptionv1_cat_forgetting")
 SAVE_DIR = os.path.join(current_dir, "models/inceptionv1_cat_forgetting")
@@ -51,7 +51,7 @@ if not os.path.exists(FORGET_MASK_PATH):
     print(f"[✓] Saved forget mask for {int(mask.sum().item())} cat samples.")
 """
 num_to_forget = int(torch.load(FORGET_MASK_PATH).sum().item())
-
+"""
 # === Step 2: Generate saliency mask ===
 print("\n[*] Generating saliency mask using generate_mask.py...")
 subprocess.run([
@@ -66,13 +66,13 @@ subprocess.run([
     "--train_y_file", os.path.join(current_dir,"labels", "train_ys.pth"),
     "--val_y_file", os.path.join(current_dir,"labels", "val_ys.pth")
 ], check=True)
-
+"""
 # === Step 3: Run SalUn unlearning ===
 print("\n[*] Running SalUn unlearning using main_random.py...")
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/main_random.py"),
     "--unlearn", "RL",
-    "--unlearn_epochs", "10",
+    "--unlearn_epochs", "5",
     "--unlearn_lr", "0.01",
     "--num_indexes_to_replace", str(num_to_forget),
     "--model_path", MODEL_PATH,

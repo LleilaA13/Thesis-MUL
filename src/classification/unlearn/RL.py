@@ -138,4 +138,61 @@ def RL(data_loaders, model, criterion, optimizer, epoch, args, mask=None):
                          epoch, i, loader_len, end-start, loss=losses, top1=top1))
                start = time.time()
 
-    return top1.avg
+        return top1.avg
+    elif args.dataset == "imagenet_zeus":
+        print("[INFO] RL unlearning for imagenet_zeus")
+        
+        losses = utils.AverageMeter()
+        top1 = utils.AverageMeter()
+
+        # Modify forget targets randomly
+        forget_dataset = deepcopy(forget_loader.dataset)
+        num_classes = args.num_classes if hasattr(args, "num_classes") else 1000
+        try:
+            forget_dataset.targets = torch.randint(0, num_classes, (len(forget_dataset),))
+        except:
+            forget_dataset.dataset.targets = torch.randint(0, num_classes, (len(forget_dataset.dataset.targets),))
+
+        retain_dataset = retain_loader.dataset
+        train_dataset = torch.utils.data.ConcatDataset([forget_dataset, retain_dataset])
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+
+        model.train()
+        start = time.time()
+
+        loader_len = len(train_loader)
+
+        for i, (images, targets) in enumerate(train_loader):
+            if epoch < args.warmup:
+                utils.warmup_lr(epoch, i+1, optimizer, one_epoch_step=loader_len, args=args)
+
+            images = images.cuda()
+            targets = targets.cuda()
+
+            output = model(images)
+            loss = criterion(output, targets)
+
+            optimizer.zero_grad()
+            loss.backward()
+
+            if mask:
+                for name, param in model.named_parameters():
+                    if param.grad is not None:
+                        param.grad *= mask[name]
+
+            optimizer.step()
+
+            # metrics
+            prec1 = utils.accuracy(output.data, targets)[0]
+            losses.update(loss.item(), images.size(0))
+            top1.update(prec1.item(), images.size(0))
+
+            if (i + 1) % args.print_freq == 0:
+                end = time.time()
+                print('Epoch: [{0}][{1}/{2}]\t'
+                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                    'Accuracy {top1.val:.3f} ({top1.avg:.3f})\t'
+                    'Time {3:.2f}'.format(
+                        epoch, i, loader_len, end-start, loss=losses, top1=top1))
+                start = time.time()
+        return top1.avg

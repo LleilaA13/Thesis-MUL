@@ -11,6 +11,15 @@ import torch.utils.data
 import unlearn
 import utils
 from trainer import validate
+def restore_flipped_forget_labels(loader):
+    # If the dataset is a Subset, go deeper
+    dataset = loader.dataset
+    if hasattr(dataset, "dataset"):
+        dataset = dataset.dataset
+    if hasattr(dataset, "targets"):
+        for i in range(len(dataset.targets)):
+            if dataset.targets[i] < 0:
+                dataset.targets[i] = -dataset.targets[i] - 1
 
 def main():
     args = arg_parser.parse_args()
@@ -26,13 +35,14 @@ def main():
         utils.setup_seed(args.seed)
     seed = args.seed
     # prepare dataset
-    (
-        model,
-        train_loader_full,
-        val_loader,
-        test_loader,
-        marked_loader,
-    ) = utils.setup_model_dataset(args)
+ 
+    if args.dataset == "imagenet_zeus":
+        model, retain_loader, forget_loader, val_loader = utils.setup_model_dataset(args)
+        test_loader = val_loader  # reuse val_loader as test_loader
+        marked_loader = None      # not used
+    else:
+        model, train_loader_full, val_loader, test_loader, marked_loader = utils.setup_model_dataset(args)
+
     model.cuda()
 
     def replace_loader_dataset(
@@ -42,13 +52,37 @@ def main():
         return torch.utils.data.DataLoader(
             dataset,
             batch_size=batch_size,
-            num_workers=0,
+            num_workers=12,
             pin_memory=True,
             shuffle=shuffle,
         )
 
-    forget_dataset = copy.deepcopy(marked_loader.dataset)
-    if args.dataset == "svhn":
+    if args.dataset == "imagenet_zeus":
+        from torch.utils.data import Subset
+
+        dataset = retain_loader.dataset.dataset if isinstance(retain_loader.dataset, Subset) else retain_loader.dataset
+        forget_mask = torch.load(args.subset_indices_path).bool()
+
+        print("[DEBUG] Loaded forget mask of length:", len(forget_mask))
+        print("[DEBUG] #Forget samples:", forget_mask.sum().item())
+        print("[DEBUG] #Retain samples:", (~forget_mask).sum().item())
+
+        forget_ids = [i for i, flag in enumerate(forget_mask) if flag]
+        retain_ids = [i for i, flag in enumerate(forget_mask) if not flag]
+
+        for i in forget_ids:
+            dataset.targets[i] = -dataset.targets[i] - 1
+
+        forget_dataset = Subset(dataset, forget_ids)
+        retain_dataset = Subset(dataset, retain_ids)
+
+        forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
+        retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
+
+        ...
+
+    elif args.dataset == "svhn":
+        forget_dataset = copy.deepcopy(marked_loader.dataset)
         try:
             marked = forget_dataset.targets < 0
         except:
@@ -76,43 +110,41 @@ def main():
     else:
         from torch.utils.data import Subset
 
-        original_dataset = marked_loader.dataset
-        if isinstance(original_dataset, Subset):
-            indices = original_dataset.indices
-            dataset = original_dataset.dataset
-   
-            print("[DEBUG] Overriding dataset targets with train_y_file")
-            marked_labels = torch.load(args.train_y_file)
-            dataset.targets = marked_labels.tolist()
-
-            targets = [dataset.targets[i] for i in indices]
-            imgs = [dataset.imgs[i] for i in indices]
-
-            forget_ids = [i for i, t in zip(indices, targets) if t < 0]
-            retain_ids = [i for i, t in zip(indices, targets) if t >= 0]
-
-            for i in forget_ids:
-                dataset.targets[i] = -dataset.targets[i] - 1
-
-            forget_dataset = Subset(dataset, forget_ids)
-            retain_dataset = Subset(dataset, retain_ids)
+        # Load full dataset and the forget mask
+        if isinstance(marked_loader.dataset, Subset):
+          dataset = marked_loader.dataset.dataset
         else:
-            marked = marked_loader.targets < 0
-            forget_dataset = copy.deepcopy(marked_loader)
-            forget_dataset.data = forget_dataset.data[marked]
-            forget_dataset.targets = -forget_dataset.targets[marked] - 1
+         dataset = marked_loader.dataset
 
-            retain_dataset = copy.deepcopy(marked_loader)
-            marked = retain_dataset.targets >= 0
-            retain_dataset.data = retain_dataset.data[marked]
-            retain_dataset.targets = retain_dataset.targets[marked]
+        forget_mask = torch.load(args.subset_indices_path).bool()  # 1 = forget, 0 = retain
 
+        print("[DEBUG] Loaded forget mask of length:", len(forget_mask))
+        print("[DEBUG] #Forget samples:", forget_mask.sum().item())
+        print("[DEBUG] #Retain samples:", (~forget_mask).sum().item())
+
+        # Construct forget and retain indices
+        all_indices = list(range(len(forget_mask)))
+        forget_ids = [i for i, flag in enumerate(forget_mask) if flag]
+        retain_ids = [i for i, flag in enumerate(forget_mask) if not flag]
+
+        # Optionally apply SalUn convention to forget labels
+        for i in forget_ids:
+            dataset.targets[i] = -dataset.targets[i] - 1
+
+
+        # Create subset datasets
+        forget_dataset = Subset(dataset, forget_ids)
+        retain_dataset = Subset(dataset, retain_ids)
+
+        # Wrap in DataLoaders
         forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
         retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
+
  
 
     print(f"number of retain dataset {len(retain_dataset)}")
     print(f"number of forget dataset {len(forget_dataset)}")
+    
     unlearn_data_loaders = OrderedDict(
         retain=retain_loader, forget=forget_loader, val=val_loader, test=test_loader
     )
@@ -144,14 +176,16 @@ def main():
 
     if evaluation_result is None:
         evaluation_result = {}
-
     if "new_accuracy" not in evaluation_result:
         accuracy = {}
         for name, loader in unlearn_data_loaders.items():
             utils.dataset_convert_to_test(loader.dataset, args)
+            if name == "forget":
+                restore_flipped_forget_labels(loader)  # ✅ Restore original labels
             val_acc = validate(loader, model, criterion, args)
             accuracy[name] = val_acc
             print(f"{name} acc: {val_acc}")
+
 
         evaluation_result["accuracy"] = accuracy
         unlearn.save_unlearn_checkpoint(model, evaluation_result, args)
