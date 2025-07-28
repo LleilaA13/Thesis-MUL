@@ -53,14 +53,14 @@ def prepare_data(
 
     if train_subset_indices is not None:
         loaders = {
-            "train": DataLoader(retain_set, batch_size=batch_size, num_workers=8, shuffle=shuffle),
-            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=8, shuffle=False),
-            "fog": DataLoader(forget_set, batch_size=batch_size, num_workers=8, shuffle=False),
+            "train": DataLoader(retain_set, batch_size=batch_size, num_workers=0, shuffle=shuffle),
+            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=0, shuffle=False),
+            "fog": DataLoader(forget_set, batch_size=batch_size, num_workers=0, shuffle=False),
         }
     else:
         loaders = {
-            "train": DataLoader(train_set, batch_size=batch_size, num_workers=8, shuffle=shuffle),
-            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=8, shuffle=False),
+            "train": DataLoader(train_set, batch_size=batch_size, num_workers=0, shuffle=shuffle),
+            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=0, shuffle=False),
         }
 
     return loaders
