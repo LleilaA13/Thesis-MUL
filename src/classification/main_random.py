@@ -11,6 +11,11 @@ import torch.utils.data
 import unlearn
 import utils
 from trainer import validate
+
+from torchvision.datasets import ImageFolder
+from torchvision import transforms
+from torch.utils.data import Subset, DataLoader
+
 def restore_flipped_forget_labels(loader):
     # If the dataset is a Subset, go deeper
     dataset = loader.dataset
@@ -181,10 +186,37 @@ def main():
         for name, loader in unlearn_data_loaders.items():
             utils.dataset_convert_to_test(loader.dataset, args)
             if name == "forget":
-                restore_flipped_forget_labels(loader)  # ✅ Restore original labels
+                restore_flipped_forget_labels(loader)  
             val_acc = validate(loader, model, criterion, args)
             accuracy[name] = val_acc
             print(f"{name} acc: {val_acc}")
+
+        print("Evaluating on true forget/retain test sets...")
+
+        val_dir = "/media/pinas/datasets/imagenet_zeus/val"
+        val_transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225]),
+        ])
+        val_dataset = ImageFolder(val_dir, transform=val_transform)
+        CAT_CLASS_IDS = [281, 282, 283, 284, 285]
+        forget_test_ids = [i for i, (_, label) in enumerate(val_dataset.samples) if label in CAT_CLASS_IDS]
+        retain_test_ids = [i for i, (_, label) in enumerate(val_dataset.samples) if label not in CAT_CLASS_IDS]
+
+        forget_test_loader = DataLoader(Subset(val_dataset, forget_test_ids), batch_size=args.batch_size, shuffle=False)
+        retain_test_loader = DataLoader(Subset(val_dataset, retain_test_ids), batch_size=args.batch_size, shuffle=False)
+
+        forget_test_acc = validate(forget_test_loader, model, criterion, args)
+        retain_test_acc = validate(retain_test_loader, model, criterion, args)
+
+        accuracy["forget_test"] = forget_test_acc
+        accuracy["retain_test"] = retain_test_acc
+
+        print(f"forget_test acc: {forget_test_acc}")
+        print(f"retain_test acc: {retain_test_acc}")            
 
 
         evaluation_result["accuracy"] = accuracy
