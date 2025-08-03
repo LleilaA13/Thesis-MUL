@@ -6,6 +6,7 @@ import random
 import shutil
 import time
 from copy import deepcopy
+import torch.nn.init as init
 
 import arg_parser
 import matplotlib.pyplot as plt
@@ -36,19 +37,40 @@ def main():
     if args.seed:
         setup_seed(args.seed)
 
-    # prepare dataset
+    args.class_to_replace = None  # safe default for any dataset
+
+    result = setup_model_dataset(args)
+
     if args.dataset == "imagenet":
-        args.class_to_replace = None
-        model, train_loader, val_loader = setup_model_dataset(args)
+        model, train_loader, val_loader = result
+
+    elif args.dataset == "imagenet_zeus":
+        model, retain_loader, forget_loader, val_loader = result
+        train_loader = retain_loader
+
     else:
-        (
-            model,
-            train_loader,
-            val_loader,
-            test_loader,
-            marked_loader,
-        ) = setup_model_dataset(args)
+        model, train_loader, val_loader, test_loader, marked_loader = result
+
+
     model.cuda()
+    # === Force weight reinitialization ===
+    def weights_init(m):
+        if isinstance(m, nn.Linear):
+            nn.init.kaiming_normal_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+
+    model.apply(weights_init)
+    print("[DEBUG] Model weights reinitialized.")
+
+
+    print("\n[DEBUG] Model Summary:")
+    print(model)
+    print(f"[DEBUG] fc input: {model.fc.in_features}, output: {model.fc.out_features}\n")
 
     print(f"number of train dataset {len(train_loader.dataset)}")
     print(f"number of val dataset {len(val_loader.dataset)}")
@@ -105,6 +127,10 @@ def main():
 
         start_epoch = 0
         state = 0
+
+    print(f"[DEBUG] model.fc in_features: {model.fc.in_features}")
+    print(f"[DEBUG] model.fc out_features: {model.fc.out_features}")
+
 
     for epoch in range(start_epoch, args.epochs):
         start_time = time.time()

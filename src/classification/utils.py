@@ -1,6 +1,20 @@
 """
     setup model and datasets
 """
+# ---- Custom Model: InceptionV1 with classification head ----
+import torch.nn as nn
+from lucent.modelzoo import inceptionv1 as lucent_inceptionv1
+
+class InceptionV1WithHead(nn.Module):
+    def __init__(self, num_classes=1000):
+        super().__init__()
+        self.base = lucent_inceptionv1()
+        self.base.fc = nn.Identity()
+        self.fc = nn.Linear(1008, num_classes)
+
+    def forward(self, x):
+        x = self.base(x)
+        return self.fc(x)
 
 
 import copy
@@ -234,8 +248,7 @@ def setup_model_dataset(args):
         train_ys = torch.load(args.train_y_file)
         val_ys = torch.load(args.val_y_file)
         if args.arch == "inceptionv1":
-            from lucent.modelzoo import inceptionv1
-            model = inceptionv1()
+            model = InceptionV1WithHead()
         else:
             model = model_dict[args.arch](num_classes=classes, imagenet=True)
 
@@ -286,8 +299,7 @@ def setup_model_dataset(args):
 
     # Initialize model
         if args.arch == "inceptionv1":
-            from lucent.modelzoo import inceptionv1
-            model = inceptionv1()
+            model = InceptionV1WithHead()
         else:
             model = model_dict[args.arch](num_classes=classes, imagenet=True)
 

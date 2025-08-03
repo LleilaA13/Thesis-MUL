@@ -3,7 +3,30 @@ import torch
 import torchvision
 from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
+from torchvision.datasets import folder
 
+# Patch torchvision's make_dataset to show progress
+original_make_dataset = folder.make_dataset
+
+def verbose_make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
+    print(f"[*] Scanning {directory} ...")
+    total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(directory)])
+    bar = tqdm(total=total_dirs, desc="Indexing ImageNet folders")
+
+    all_samples = []
+    for root, dirs, files in os.walk(directory, followlinks=True):
+        bar.update(1)
+        for fname in files:
+            path = os.path.join(root, fname)
+            class_name = os.path.basename(os.path.dirname(path))
+            if class_name in class_to_idx:
+                if extensions is None or path.lower().endswith(tuple(extensions)):
+                    item = (path, class_to_idx[class_name])
+                    all_samples.append(item)
+    bar.close()
+    return all_samples
+
+folder.make_dataset = verbose_make_dataset
 
 def prepare_data(
     dataset,
@@ -53,14 +76,14 @@ def prepare_data(
 
     if train_subset_indices is not None:
         loaders = {
-            "train": DataLoader(retain_set, batch_size=batch_size, num_workers=0, shuffle=shuffle),
-            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=0, shuffle=False),
-            "fog": DataLoader(forget_set, batch_size=batch_size, num_workers=0, shuffle=False),
+            "train": DataLoader(retain_set, batch_size=batch_size, num_workers=16, shuffle=shuffle),
+            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=16, shuffle=False),
+            "fog": DataLoader(forget_set, batch_size=batch_size, num_workers=16, shuffle=False),
         }
     else:
         loaders = {
-            "train": DataLoader(train_set, batch_size=batch_size, num_workers=0, shuffle=shuffle),
-            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=0, shuffle=False),
+            "train": DataLoader(train_set, batch_size=batch_size, num_workers=16, shuffle=shuffle),
+            "val": DataLoader(validation_set, batch_size=batch_size, num_workers=16, shuffle=False),
         }
 
     return loaders
