@@ -1,20 +1,6 @@
 """
     setup model and datasets
 """
-# ---- Custom Model: InceptionV1 with classification head ----
-import torch.nn as nn
-from lucent.modelzoo import inceptionv1 as lucent_inceptionv1
-
-class InceptionV1WithHead(nn.Module):
-    def __init__(self, num_classes=1000):
-        super().__init__()
-        self.base = lucent_inceptionv1()
-        self.base.fc = nn.Identity()
-        self.fc = nn.Linear(1008, num_classes)
-
-    def forward(self, x):
-        x = self.base(x)
-        return self.fc(x)
 
 
 import copy
@@ -249,6 +235,12 @@ def setup_model_dataset(args):
         val_ys = torch.load(args.val_y_file)
         if args.arch == "inceptionv1":
             model = InceptionV1WithHead()
+        elif args.arch == "inceptionv3":
+            from torchvision.models import inception_v3, Inception_V3_Weights
+            weights = Inception_V3_Weights.IMAGENET1K_V1
+            model = inception_v3(weights=weights, aux_logits=True)
+            model.aux_logits = False
+            model.AuxLogits = None  # Remove aux branch
         else:
             model = model_dict[args.arch](num_classes=classes, imagenet=True)
 
@@ -283,6 +275,15 @@ def setup_model_dataset(args):
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225]
         )
+        if args.arch == "inceptionv3":
+            from torchvision.models import inception_v3, Inception_V3_Weights
+            weights = Inception_V3_Weights.IMAGENET1K_V1
+            model = inception_v3(weights=weights, aux_logits=True)
+            model.aux_logits = False
+            model.AuxLogits = None  # Remove aux branch
+
+        else:
+            model = model_dict[args.arch](num_classes=classes, imagenet=True)
 
     # Load labels
         train_ys = torch.load(args.train_y_file)
@@ -297,14 +298,7 @@ def setup_model_dataset(args):
         print(f"[DEBUG] Forget samples: {(~train_subset_indices.bool()).sum().item()}")
         print(f"[DEBUG] Retain samples: {train_subset_indices.sum().item()}")
 
-    # Initialize model
-        if args.arch == "inceptionv1":
-            model = InceptionV1WithHead()
-        else:
-            model = model_dict[args.arch](num_classes=classes, imagenet=True)
-
-            model.normalize = normalization
-
+   
         # Load dataset using Subset mask
         loaders = prepare_data(
             dataset="imagenet",

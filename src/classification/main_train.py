@@ -67,10 +67,18 @@ def main():
     model.apply(weights_init)
     print("[DEBUG] Model weights reinitialized.")
 
+    # Only reinitialize weights if NOT using pretrained model
+    if not getattr(args, "pretrained", False):
+        model.apply(weights_init)
+        print("[DEBUG] Model weights reinitialized.")
+    else:
+        print("[DEBUG] Skipped weight reinit: using pretrained weights.")
+
 
     print("\n[DEBUG] Model Summary:")
     print(model)
     print(f"[DEBUG] fc input: {model.fc.in_features}, output: {model.fc.out_features}\n")
+
 
     print(f"number of train dataset {len(train_loader.dataset)}")
     print(f"number of val dataset {len(val_loader.dataset)}")
@@ -182,6 +190,19 @@ def main():
     plt.legend()
     plt.savefig(os.path.join(args.save_dir, str(state) + "net_train.png"))
     plt.close()
+
+    plt.savefig(os.path.join(args.save_dir, "thesis_inceptionv3_plot.png"))
+
+
+    with open(os.path.join(args.save_dir, "thesis_metrics.txt"), "w") as f:
+    f.write(f"Best validation accuracy: {best_sa:.4f}\n")
+    f.write(f"Train samples: {len(train_loader.dataset)}\n")
+    f.write(f"Val samples: {len(val_loader.dataset)}\n")
+    f.write("Train Accuracy Curve:\n")
+    f.write(", ".join([f"{x:.4f}" for x in all_result["train_ta"]]) + "\n")
+    f.write("Val Accuracy Curve:\n")
+    f.write(", ".join([f"{x:.4f}" for x in all_result["val_ta"]]) + "\n")
+
 
     print("Performance on the test data set")
     test_tacc = validate(val_loader, model, criterion, args)
