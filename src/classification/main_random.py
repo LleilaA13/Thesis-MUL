@@ -187,6 +187,10 @@ def main():
             utils.dataset_convert_to_test(loader.dataset, args)
             if name == "forget":
                 restore_flipped_forget_labels(loader)  
+            if name == "val":
+                print("[!] Skipping 'val' loader due to previous crash.")
+                continue
+
             val_acc = validate(loader, model, criterion, args)
             accuracy[name] = val_acc
             print(f"{name} acc: {val_acc}")
@@ -216,9 +220,50 @@ def main():
         accuracy["retain_test"] = retain_test_acc
 
         print(f"forget_test acc: {forget_test_acc}")
-        print(f"retain_test acc: {retain_test_acc}")            
+        print(f"retain_test acc: {retain_test_acc}")  
 
+        print("\n[*] Evaluating on true forget/retain training sets...")
 
+        # Get access to original training dataset
+        train_dataset = retain_loader.dataset.dataset if hasattr(retain_loader.dataset, "dataset") else retain_loader.dataset
+
+        forget_train_ids = [i for i, (_, label) in enumerate(train_dataset.samples) if label in CAT_CLASS_IDS]
+        retain_train_ids = [i for i, (_, label) in enumerate(train_dataset.samples) if label not in CAT_CLASS_IDS]
+
+        forget_train_loader = torch.utils.data.DataLoader(
+            torch.utils.data.Subset(train_dataset, forget_train_ids),
+            batch_size=args.batch_size,
+            shuffle=False,
+            num_workers=0
+        )
+
+        retain_train_loader = torch.utils.data.DataLoader(
+            torch.utils.data.Subset(train_dataset, retain_train_ids),
+            batch_size=args.batch_size,
+            shuffle=False,
+            num_workers=0
+        )
+
+        forget_train_acc = validate(forget_train_loader, model, criterion, args)
+        retain_train_acc = validate(retain_train_loader, model, criterion, args)
+
+        print(f"[Train Forget Accuracy]: {forget_train_acc:.2f}%")
+        print(f"[Train Retain Accuracy]: {retain_train_acc:.2f}%")
+
+        import json
+
+        results = {
+            "train_forget_accuracy": forget_train_acc,
+            "train_retain_accuracy": retain_train_acc,
+            "test_forget_accuracy": forget_test_acc,
+            "test_retain_accuracy": retain_test_acc
+        }
+
+        with open(f"{args.save_dir}/salun_eval_results.json", "w") as f:
+            json.dump(results, f, indent=2)
+
+        
+        evaluation_result["new_accuracy"] = accuracy  
         evaluation_result["accuracy"] = accuracy
         unlearn.save_unlearn_checkpoint(model, evaluation_result, args)
 
