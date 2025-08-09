@@ -4,6 +4,9 @@ import torchvision
 from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 from torchvision.datasets import folder
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 
 # Patch torchvision's make_dataset to show progress
 original_make_dataset = folder.make_dataset

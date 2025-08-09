@@ -43,7 +43,8 @@ def load_unlearn_checkpoint(model, device, args):
     model.load_state_dict(checkpoint["state_dict"])
 
     # adding an extra forward process to enable the masks
-    x_rand = torch.rand(1, 3, args.input_size, args.input_size).cuda()
+    x_rand = torch.randn(1, 3, 299, 299).to(device)
+
     model.eval()
     with torch.no_grad():
         model(x_rand)

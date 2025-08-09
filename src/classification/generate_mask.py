@@ -76,7 +76,7 @@ def save_gradient_ratio(data_loaders, model, criterion, args):
             threshold_tensor = torch.zeros_like(tensor_ranks)
             threshold_tensor[tensor_ranks < threshold_index] = 1
             threshold_tensor = threshold_tensor.reshape(tensor.shape)
-            hard_dict[key] = threshold_tensor
+            hard_dict[key + "_mask"] = threshold_tensor
             start_index += num_elements
 
         torch.save(hard_dict, os.path.join(args.save_dir, "with_{}.pt".format(i)))
