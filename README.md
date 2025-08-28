@@ -1,4 +1,4 @@
-# Thesis: Saliency-Based Unlearning on InceptionV1
+# Thesis: Saliency-Based Unlearning on InceptionV3
 
 This repository contains the code and experiments from my thesis work on applying saliency-based unlearning (SalUn) to a convolutional neural network trained on ImageNet. The goal is to remove all knowledge of certain classes — in this case, cat classes — from the model, and study how this affects its internal representations.
 
