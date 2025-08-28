@@ -62,6 +62,8 @@ def main():
         checkpoint = unlearn.load_unlearn_checkpoint(model, device, args)
         if checkpoint is not None:
             model, evaluation_result = checkpoint
+        if evaluation_result is None or not isinstance(evaluation_result, dict):
+            evaluation_result = {}
             # ✅ Skip if accuracy already exists
             if "accuracy" in evaluation_result:
                 print("[✓] Skipping evaluation — already in checkpoint")
