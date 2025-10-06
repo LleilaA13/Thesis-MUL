@@ -15,6 +15,7 @@ data/
 *.zip
 *.npz
 *.npy
+datasets/
 
 # Compiled Python files
 __pycache__/
