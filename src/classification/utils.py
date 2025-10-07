@@ -247,7 +247,8 @@ def setup_model_dataset(args):
         train_ys = torch.load(args.train_y_file)
         val_ys = torch.load(args.val_y_file)
         if args.arch == "inceptionv1":
-            model = InceptionV1WithHead()
+            # Fallback: use model_dict implementation since InceptionV1WithHead is not defined
+            model = model_dict[args.arch](num_classes=classes, imagenet=True)
         elif args.arch == "inceptionv3":
             from torchvision.models import inception_v3, Inception_V3_Weights
             weights = Inception_V3_Weights.IMAGENET1K_V1

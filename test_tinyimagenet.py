@@ -10,9 +10,13 @@ from torchvision import transforms
 
 # Add the src directory to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(current_dir, "src", "classification"))
+# Add the project 'src' root so we can import classification.dataset
+sys.path.append(os.path.join(current_dir, "src"))
 
-from dataset import TinyImageNet
+try:
+    from classification.dataset import TinyImageNet
+except ImportError as e:
+    raise ImportError("Could not import TinyImageNet from classification.dataset. Ensure src/classification/dataset.py exists.") from e
 
 class Args:
     def __init__(self):

@@ -1,12 +1,116 @@
-# Thesis: Saliency-Based Unlearning on InceptionV3
+# Thesis-MUL: Saliency-Based Machine Unlearning with Feature Visualization
 
-This repository contains the code and experiments from my thesis work on applying saliency-based unlearning (SalUn) to a convolutional neural network trained on ImageNet. The goal is to remove all knowledge of certain classes — in this case, cat classes — from the model, and study how this affects its internal representations.
-
----
+This repository contains the implementation and experiments for my thesis research on the intersection of machine unlearning and feature visualization. The work explores how Saliency-based Unlearning (SalUn) affects internal neural representations and demonstrates the critical role of feature visualization in validating knowledge removal.
 
 ## Overview
 
-The main idea is to use the [SalUn method](https://github.com/OPTML-Group/Unlearn-Saliency) to erase a subset of classes from a trained classifier without retraining from scratch. After unlearning, I use [Lucent](https://github.com/greentfrapp/lucent) to visualize changes in the model's layers and neurons.
+Machine unlearning has become essential for privacy compliance and responsible AI deployment. This research investigates how targeted knowledge removal manifests in the internal representations of deep neural networks, using feature visualization as both a diagnostic tool and validation mechanism for unlearning effectiveness.
 
-I'm using a modified version of Lucent’s `inceptionv3`, pre-trained on full ImageNet. The classes I target for forgetting are ImageNet classes 281–285 (various cat breeds).
+## Research Focus
 
+The thesis explores the fundamental relationship between:
+- **Feature Visualization**: Understanding how networks encode visual concepts
+- **Machine Unlearning**: Selectively removing specific knowledge without complete retraining
+- **Representational Analysis**: Examining how unlearning affects neural activations across network layers
+
+## Experimental Setup
+
+### Architecture 1: InceptionV3 + ImageNet Cat Classes
+- **Model**: Pre-trained InceptionV3 (via Lucent implementation)
+- **Dataset**: ImageNet
+- **Target Classes**: Cat breeds (classes 281-285)
+  - Tabby cats
+  - Persian cats  
+  - Siamese cats
+  - Egyptian cats
+  - Cougar/mountain lions
+- **Visualization Tool**: Lucent for activation maximization and layer analysis
+
+### Architecture 2: ResNet50 + Vehicle Classification
+- **Model**: ResNet50
+- **Task**: Vehicle classification and forgetting
+- **Focus**: Automotive category removal while preserving other vehicle classes
+- **Files**: Results stored in `results/resnet50_vehicles_forgetting/`
+
+## Methodology: SalUn (Saliency-based Unlearning)
+
+### Core Approach
+1. **Saliency Computation**: Calculate gradient magnitudes for target classes
+2. **Weight Selection**: Identify most influential parameters for forget classes  
+3. **Selective Modification**: Fine-tune only salient weights while freezing others
+4. **Random Label Assignment**: Assign random labels to forget-set samples during retraining
+
+### Key Innovation
+Unlike traditional approaches that modify all parameters, SalUn targets only the most relevant weights, achieving:
+- Efficient knowledge removal
+- Preserved performance on retained classes
+- Computational efficiency compared to full retraining
+
+## Feature Visualization Analysis
+
+### Pre/Post Unlearning Comparisons
+- **Layer-wise Analysis**: Examine changes from early edge detectors to high-level semantics
+- **Activation Patterns**: Compare neuron responses before and after unlearning
+- **Feature Maps**: Visualize how targeted concepts are erased from internal representations
+
+### Validation Framework
+- **Traditional Metrics**: Classification accuracy on forget/retain sets
+- **Visual Validation**: Feature visualization reveals residual knowledge invisible to accuracy metrics
+- **Completeness Assessment**: Identify incomplete unlearning through activation analysis
+
+## Repository Structure
+
+```
+├── results/
+│   └── resnet50_vehicles_forgetting/
+│       ├── 0checkpoint.pth.tar          # Model checkpoints
+│       └── 0model_SA_best.pth.tar       # Best saliency-aware model
+├── notebooks/                           # Jupyter notebooks for experiments
+├── src/                                # Source code implementation
+└── visualizations/                     # Generated feature visualizations
+```
+
+## Key Findings
+
+### 1. Visualization as Validation
+Feature visualization provides superior validation for unlearning completeness compared to accuracy metrics alone, revealing subtle knowledge retention patterns.
+
+### 2. Multi-Layer Impact
+Effective unlearning requires coordinated changes across network layers - incomplete removal often shows residual activations in deeper layers.
+
+### 3. Architecture Generalizability
+SalUn demonstrates effectiveness across different architectures (InceptionV3, ResNet50) and domains (ImageNet classification, vehicle recognition).
+
+### 4. Representational Understanding
+The research establishes that understanding internal feature dynamics is crucial for developing trustworthy unlearning methods.
+
+## Technologies Used
+
+- **Deep Learning**: PyTorch
+- **Visualization**: Lucent (modified InceptionV3 implementation)
+- **Unlearning**: SalUn implementation
+- **Analysis**: Jupyter notebooks for experimental workflows
+- **Model Storage**: Git LFS for large model files (*.pth.tar)
+
+
+## Thesis Contributions
+
+1. **Novel Framework**: Links representational analysis with privacy-preserving machine learning
+2. **Validation Methodology**: Establishes feature visualization as essential for unlearning verification
+3. **Multi-Architecture Analysis**: Demonstrates generalizability across network designs
+4. **Practical Applications**: Provides tools for trustworthy knowledge removal in production systems
+
+## Future Work
+
+- Extension to other architectural families (Transformers, Vision Transformers)
+- Real-world deployment scenarios and privacy guarantees
+- Automated detection of incomplete unlearning through visualization analysis
+- Integration with differential privacy frameworks
+
+## License
+
+MIT License - See LICENSE file for details
+
+---
+
+*This repository supports the thesis research on "Saliency-Based Machine Unlearning with Feature Visualization Analysis" demonstrating how internal neural representations change during targeted knowledge removal.*

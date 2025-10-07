@@ -109,6 +109,7 @@ subprocess.run([
     "--unlearn_epochs", "1",
     "--arch", ARCH,
     "--dataset", DATASET,
+    "--imagenet_arch",  # Important: Use ImageNet architecture to match trained model
     "--train_y_file", os.path.join(current_dir, "labels", "train_ys.pth"),
     "--val_y_file", os.path.join(current_dir, "labels", "val_ys.pth")
 ], check=True, env=env)
@@ -132,6 +133,7 @@ subprocess.run([
     "--subset_indices_path", FORGET_MASK_PATH,
     "--arch", ARCH,
     "--dataset", DATASET,
+    "--imagenet_arch",  # Important: Use ImageNet architecture to match trained model
     "--train_y_file", os.path.join(current_dir, "labels", "train_ys.pth"),
     "--val_y_file", os.path.join(current_dir, "labels", "val_ys.pth")
 ], check=True, env=env)
