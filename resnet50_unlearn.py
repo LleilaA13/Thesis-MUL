@@ -4,32 +4,102 @@ import sys
 import torch
 from tqdm import tqdm
 
+# === GPU Configuration ===
+# Set which GPU to use (0 or 1, or "0,1" for both)
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1 which has more free memory
+print(f"[*] Using GPU(s): {os.environ.get('CUDA_VISIBLE_DEVICES', 'default')}")
+
 # === Setup project paths ===
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, "src", "classification"))
 
 # === Config ===
-# Example: Forgetting 'plain' and 'ecc' classes (replace with actual class indices)
-PLAIN_ECC_CLASS_IDS = [class_id_plain, class_id_ecc]  # Fill in with correct indices
-DATASET = "tinyimagenet"
+# Example: Forgetting vehicle classes (replace with actual class indices)
+vehicle_wnids = [
+    "n02690373", "n02958343", "n02974003", "n03100240", "n03417042",
+    "n03770679", "n03796401", "n03930630", "n04037443", "n04285008", "n04461696"
+]  # Fill in with correct indices
+DATASET = "TinyImagenet"
 ARCH = "resnet50"
-TIN_IMAGENET_DIR = os.path.join(current_dir, "datasets", "tiny-imagenet-200")
-MODEL_PATH = os.path.join(current_dir, "src/classification/resnet50.pth")
-FORGET_MASK_PATH = os.path.join(current_dir, "plain_ecc_forget_indices.pt")
-SALIENCY_DIR = os.path.join(current_dir, "masks/resnet50_plain_ecc_forgetting")
-SAVE_DIR = os.path.join(current_dir, "models/resnet50_plain_ecc_forgetting/mask0_5")
+TIN_IMAGENET_DIR = os.path.join(current_dir, "datasets/tiny-imagenet-200")
+MODEL_PATH = os.path.join(current_dir, "src/classification/models/resnet50_pretrained.pth")  # Update to correct path
+FORGET_MASK_PATH = os.path.join(current_dir, "vehicles_forget_indices.pt")
+SALIENCY_DIR = os.path.join(current_dir, "masks/resnet50_vehicles_forgetting")
+SAVE_DIR = os.path.join(current_dir, "models/resnet50_vehicles_forgetting/mask0_5")
+RESULTS_DIR = os.path.join(current_dir, "results/resnet50_vehicles_forgetting")
 MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.5.pt")  # or another threshold
 
 os.makedirs(SALIENCY_DIR, exist_ok=True)
 os.makedirs(SAVE_DIR, exist_ok=True)
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
-# === Step 1: Prepare Forget Mask ===
-# You need to create a mask file (plain_ecc_forget_indices.pt) with indices of samples to forget.
-# This can be done with a helper script or notebook that selects all samples from the target classes.
-num_to_forget = int(torch.load(FORGET_MASK_PATH).sum().item())
+# === Step 1: Check or create the forget mask ===
+# First, check if the forget mask exists, if not, create it
+if not os.path.exists(FORGET_MASK_PATH):
+    print(f"\n[!] Forget mask not found at {FORGET_MASK_PATH}")
+    print("[*] Creating vehicle forget mask...")
+    
+    # Import and run the helper function
+    helper_script = os.path.join(current_dir, "create_vehicle_forget_mask.py")
+    subprocess.run(["python", helper_script], check=True)
 
-# === Step 2: Generate saliency mask ===
+# === Step 2: Train or load base model ===
+if not os.path.exists(MODEL_PATH):
+    print(f"\n[!] Model not found at {MODEL_PATH}")
+    print("[*] You need to either:")
+    print("    1. Train a ResNet-50 model on TinyImageNet, or")
+    print("    2. Use a pre-trained model and place it at the expected location")
+    print(f"    Expected location: {MODEL_PATH}")
+    
+    # Option to train (commented out as it takes a long time)
+    train_model = input("\nDo you want to train a new model? This will take several hours. (y/N): ")
+    if train_model.lower() == 'y':
+        print("[*] Training ResNet-50 on TinyImageNet...")
+        
+        # Create environment with CUDA_VISIBLE_DEVICES
+        env = os.environ.copy()
+        env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
+        
+        subprocess.run([
+            "python", "src/classification/main_train.py",
+            "--arch", ARCH,
+            "--dataset", DATASET,
+            "--imagenet_arch",  # Important: Use ImageNet architecture for 64x64 images
+            "--pretrained",     # Use pretrained ImageNet weights
+            "--lr", "0.001",    # Even lower learning rate for fine-tuning
+            "--epochs", "100",  # Adjust as needed
+            "--save_dir", RESULTS_DIR,
+            "--data_dir", TIN_IMAGENET_DIR,
+            "--batch_size", "64"  # Reduce batch size to avoid OOM
+        ], check=True, env=env)
+        print("[*] Training complete. Please check the results directory for the trained model.")
+        print(f"[*] Move the best model to: {MODEL_PATH}")
+    else:
+        print("[*] Please provide a trained ResNet-50 model and place it at the expected location.")
+        sys.exit(1)
+
+# Load the forget mask to get the number of samples to forget
+try:
+    forget_mask = torch.load(FORGET_MASK_PATH)
+    num_to_forget = int(forget_mask.sum().item())
+    print(f"[✓] Loaded forget mask: {num_to_forget} samples to forget out of {len(forget_mask)} total")
+except Exception as e:
+    print(f"[!] Error loading forget mask: {e}")
+    sys.exit(1)
+
+# Validate that the TinyImageNet dataset exists
+if not os.path.exists(TIN_IMAGENET_DIR):
+    print(f"[!] TinyImageNet dataset not found at: {TIN_IMAGENET_DIR}")
+    print("[*] Please download and extract TinyImageNet to the datasets folder")
+    sys.exit(1)
+
+# === Step 3: Generate saliency mask ===
 print("\n[*] Generating saliency mask using generate_mask.py...")
+
+# Create environment with CUDA_VISIBLE_DEVICES
+env = os.environ.copy()
+env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
+
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/generate_mask.py"),
     "--save_dir", SALIENCY_DIR,
@@ -41,10 +111,15 @@ subprocess.run([
     "--dataset", DATASET,
     "--train_y_file", os.path.join(current_dir, "labels", "train_ys.pth"),
     "--val_y_file", os.path.join(current_dir, "labels", "val_ys.pth")
-], check=True)
+], check=True, env=env)
 
-# === Step 3: Run SalUn unlearning ===
+# === Step 4: Run SalUn unlearning ===
 print("\n[*] Running SalUn unlearning using main_random.py...")
+
+# Create environment with CUDA_VISIBLE_DEVICES
+env = os.environ.copy()
+env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
+
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/main_random.py"),
     "--unlearn", "RL",  # or your chosen method
@@ -59,6 +134,6 @@ subprocess.run([
     "--dataset", DATASET,
     "--train_y_file", os.path.join(current_dir, "labels", "train_ys.pth"),
     "--val_y_file", os.path.join(current_dir, "labels", "val_ys.pth")
-], check=True)
+], check=True, env=env)
 
-print("\n[✓] Plain/ECC-class forgetting complete using SalUn + ResNet-50.")
+print("\n[✓] Vehicle-class forgetting complete using SalUn + ResNet-50.")

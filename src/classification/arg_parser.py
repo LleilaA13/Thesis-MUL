@@ -31,6 +31,11 @@ def parse_args():
         help="architecture for imagenet size samples",
     )
     parser.add_argument(
+        "--pretrained",
+        action="store_true",
+        help="use pretrained ImageNet weights",
+    )
+    parser.add_argument(
         "--train_y_file",
         type=str,
         default="./labels/train_ys.pth",

@@ -18,6 +18,7 @@ from dataset import *
 from dataset import TinyImageNet
 from imagenet import prepare_data
 from models import *
+from models import model_dict  # Explicit import
 from torchvision import transforms
 
 
@@ -219,7 +220,19 @@ def setup_model_dataset(args):
             shuffle=True,
         )
         if args.imagenet_arch:
-            model = model_dict[args.arch](num_classes=classes, imagenet=True)
+            if hasattr(args, 'pretrained') and args.pretrained:
+                # Use torchvision's pretrained model directly
+                import torchvision.models as tv_models
+                if args.arch == "resnet50":
+                    model = tv_models.resnet50(pretrained=True)
+                    # Replace the final layer for TinyImageNet (200 classes)
+                    model.fc = torch.nn.Linear(model.fc.in_features, classes)
+                else:
+                    model = model_dict[args.arch](num_classes=classes, imagenet=True)
+                print(f"[DEBUG] Using torchvision pretrained {args.arch} model")
+            else:
+                model = model_dict[args.arch](num_classes=classes, imagenet=True)
+                print(f"[DEBUG] Using random weights for {args.arch} model")
         else:
             model = model_dict[args.arch](num_classes=classes)
 

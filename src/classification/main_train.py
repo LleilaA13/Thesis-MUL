@@ -53,7 +53,10 @@ def main():
 
 
     model.cuda()
-    # === Force weight reinitialization ===
+    
+    # === Optional weight reinitialization (only for training from scratch) ===
+    # NOTE: Comment out the next section if you want to use pretrained weights
+    """
     def weights_init(m):
         if isinstance(m, nn.Linear):
             nn.init.kaiming_normal_(m.weight)
@@ -64,15 +67,19 @@ def main():
             if m.bias is not None:
                 nn.init.zeros_(m.bias)
 
-    model.apply(weights_init)
-    print("[DEBUG] Model weights reinitialized.")
-
     # Only reinitialize weights if NOT using pretrained model
     if not getattr(args, "pretrained", False):
         model.apply(weights_init)
         print("[DEBUG] Model weights reinitialized.")
     else:
         print("[DEBUG] Skipped weight reinit: using pretrained weights.")
+    """
+    
+    # For TinyImageNet, we should use pretrained ImageNet features
+    if hasattr(args, 'pretrained') and args.pretrained:
+        print("[DEBUG] Using pretrained ImageNet features (weights NOT reinitialized)")
+    else:
+        print("[DEBUG] Training from scratch (weights randomly initialized)")
 
 
     print("\n[DEBUG] Model Summary:")
@@ -195,13 +202,13 @@ def main():
 
 
     with open(os.path.join(args.save_dir, "thesis_metrics.txt"), "w") as f:
-    f.write(f"Best validation accuracy: {best_sa:.4f}\n")
-    f.write(f"Train samples: {len(train_loader.dataset)}\n")
-    f.write(f"Val samples: {len(val_loader.dataset)}\n")
-    f.write("Train Accuracy Curve:\n")
-    f.write(", ".join([f"{x:.4f}" for x in all_result["train_ta"]]) + "\n")
-    f.write("Val Accuracy Curve:\n")
-    f.write(", ".join([f"{x:.4f}" for x in all_result["val_ta"]]) + "\n")
+        f.write(f"Best validation accuracy: {best_sa:.4f}\n")
+        f.write(f"Train samples: {len(train_loader.dataset)}\n")
+        f.write(f"Val samples: {len(val_loader.dataset)}\n")
+        f.write("Train Accuracy Curve:\n")
+        f.write(", ".join([f"{x:.4f}" for x in all_result["train_ta"]]) + "\n")
+        f.write("Val Accuracy Curve:\n")
+        f.write(", ".join([f"{x:.4f}" for x in all_result["val_ta"]]) + "\n")
 
 
     print("Performance on the test data set")

@@ -12,3 +12,17 @@
 	- Methods
 
 
+# Early Layers (conv1, layer1):
+# - Edge detection, basic shapes, textures
+# - These are UNIVERSAL across all natural images
+# ✅ Perfectly transferable ImageNet → TinyImageNet
+
+# Middle Layers (layer2, layer3):  
+# - Complex patterns, object parts (wheels, eyes, fur)
+# - Still very transferable for natural images
+# ✅ Highly transferable ImageNet → TinyImageNet
+
+# Final Layer (layer4 + fc):
+# - High-level concepts, class-specific features
+# - This is what we replace for new classes
+# 🔄 We replace fc: 1000 classes → 200 classes

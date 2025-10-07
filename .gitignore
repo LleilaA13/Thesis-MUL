@@ -42,3 +42,12 @@ Thumbs.db
 #heavy folders
 masks/*
 masks/
+
+# Model files (typically large)
+*.pth
+*.pth.tar
+*.ckpt
+*.pkl
+*.h5
+results/*/
+models/*/

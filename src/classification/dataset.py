@@ -346,27 +346,60 @@ def cifar100_dataloaders_no_val(
     return train_loader, val_loader, test_loader
 
 
-class TinyImageNetDataset(Dataset):
-    def __init__(self, image_folder_set, norm_trans=None, start=0, end=-1):
+class TinyImageNetImageFolder:
+    """Custom ImageFolder that handles TinyImageNet structure with images/ subdirectories"""
+    
+    def __init__(self, root, transform=None):
+        self.root = root
+        self.transform = transform
+        self.classes = []
+        self.class_to_idx = {}
         self.imgs = []
-        self.targets = []
+        
+        # Find all class directories
+        for class_dir in sorted(os.listdir(root)):
+            class_path = os.path.join(root, class_dir)
+            if os.path.isdir(class_path):
+                self.classes.append(class_dir)
+                self.class_to_idx[class_dir] = len(self.classes) - 1
+                
+                # Look for images in the images/ subdirectory
+                images_path = os.path.join(class_path, "images")
+                if os.path.exists(images_path):
+                    for img_file in os.listdir(images_path):
+                        if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                            img_path = os.path.join(images_path, img_file)
+                            self.imgs.append((img_path, self.class_to_idx[class_dir]))
+
+
+class TinyImageNetDataset(Dataset):
+    def __init__(self, image_folder_set, norm_trans=None, start=0, end=None):
+        self.image_folder_set = image_folder_set
+        self.norm_trans = norm_trans
         self.transform = image_folder_set.transform
-        for sample in tqdm(image_folder_set.imgs[start:end]):
-            self.targets.append(sample[1])
-            img = transforms.ToTensor()(Image.open(sample[0]).convert("RGB"))
-            if norm_trans is not None:
-                img = norm_trans(img)
-            self.imgs.append(img)
-        self.imgs = torch.stack(self.imgs)
+        
+        end_idx = len(image_folder_set.imgs) if end is None else end
+        
+        self.imgs = image_folder_set.imgs[start:end_idx]
+        self.targets = [img[1] for img in self.imgs]
+        
+        if len(self.imgs) == 0:
+            raise RuntimeError(f"No images were loaded! Check the dataset path and structure.")
 
     def __len__(self):
         return len(self.targets)
 
     def __getitem__(self, idx):
+        img_path, target = self.imgs[idx]
+        img = transforms.ToTensor()(Image.open(img_path).convert("RGB"))
+        
+        if self.norm_trans is not None:
+            img = self.norm_trans(img)
+            
         if self.transform is not None:
-            return self.transform(self.imgs[idx]), self.targets[idx]
-        else:
-            return self.imgs[idx], self.targets[idx]
+            img = self.transform(img)
+            
+        return img, target
 
 
 class TinyImageNet:
@@ -442,9 +475,9 @@ class TinyImageNet:
         shuffle=True,
         no_aug=False,
     ):
-        train_set = ImageFolder(self.train_path, transform=self.tr_train)
+        train_set = TinyImageNetImageFolder(self.train_path, transform=self.tr_train)
         train_set = TinyImageNetDataset(train_set, self.norm_layer)
-        test_set = ImageFolder(self.test_path, transform=self.tr_test)
+        test_set = TinyImageNetImageFolder(self.test_path, transform=self.tr_test)
         test_set = TinyImageNetDataset(test_set, self.norm_layer)
         train_set.targets = np.array(train_set.targets)
         train_set.targets = np.array(train_set.targets)
@@ -459,12 +492,15 @@ class TinyImageNet:
         valid_idx = np.hstack(valid_idx)
         train_set_copy = copy.deepcopy(train_set)
 
-        valid_set.imgs = train_set_copy.imgs[valid_idx]
+        # Convert numpy arrays to lists for proper indexing
+        valid_idx_list = valid_idx.tolist()
+        
+        valid_set.imgs = [train_set_copy.imgs[i] for i in valid_idx_list]
         valid_set.targets = train_set_copy.targets[valid_idx]
 
-        train_idx = list(set(range(len(train_set))) - set(valid_idx))
+        train_idx = list(set(range(len(train_set))) - set(valid_idx_list))
 
-        train_set.imgs = train_set_copy.imgs[train_idx]
+        train_set.imgs = [train_set_copy.imgs[i] for i in train_idx]
         train_set.targets = train_set_copy.targets[train_idx]
 
         if class_to_replace is not None and indexes_to_replace is not None:
