@@ -12,22 +12,26 @@ print(f"[*] Using GPU(s): {os.environ.get('CUDA_VISIBLE_DEVICES', 'default')}")
 # === Setup project paths ===
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, "src", "classification"))
+sys.path.append(current_dir)  # Add for unlearn_config
+
+# Import centralized configuration
+from unlearn_config import get_forget_class_config, create_forget_mask
 
 # === Config ===
-# Example: Forgetting vehicle classes (replace with actual class indices)
-vehicle_wnids = [
-    "n02690373", "n02958343", "n02974003", "n03100240", "n03417042",
-    "n03770679", "n03796401", "n03930630", "n04037443", "n04285008", "n04461696"
-]  # Fill in with correct indices
+FORGET_TYPE = "cats"  # What we're forgetting
+config = get_forget_class_config(FORGET_TYPE)
+print(f"[*] Configured for {FORGET_TYPE} forgetting: {len(config['wnids'])} classes")
+print(f"[*] Classes: {config['names']}")
+
 DATASET = "TinyImagenet"
 ARCH = "resnet50"
 TIN_IMAGENET_DIR = os.path.join(current_dir, "datasets/tiny-imagenet-200")
-MODEL_PATH = os.path.join(current_dir, "src/classification/models/resnet50_pretrained.pth")  # Update to correct path
-FORGET_MASK_PATH = os.path.join(current_dir, "vehicles_forget_indices.pt")
-SALIENCY_DIR = os.path.join(current_dir, "masks/resnet50_vehicles_forgetting")
-SAVE_DIR = os.path.join(current_dir, "models/resnet50_vehicles_forgetting/mask0_5")
-RESULTS_DIR = os.path.join(current_dir, "results/resnet50_vehicles_forgetting")
-MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.5.pt")  # or another threshold
+MODEL_PATH = os.path.join(current_dir, "src/classification/models/resnet50_pretrained.pth")
+FORGET_MASK_PATH = os.path.join(current_dir, f"{FORGET_TYPE}_forget_mask_boolean.pt")
+SALIENCY_DIR = os.path.join(current_dir, f"masks/resnet50_{FORGET_TYPE}_forgetting")
+SAVE_DIR = os.path.join(current_dir, f"models/resnet50_{FORGET_TYPE}_forgetting/mask0_5")
+RESULTS_DIR = os.path.join(current_dir, f"results/resnet50_{FORGET_TYPE}_forgetting")
+MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.5.pt")
 
 os.makedirs(SALIENCY_DIR, exist_ok=True)
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -123,9 +127,9 @@ env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
 
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/main_random.py"),
-    "--unlearn", "RL",  # or your chosen method
-    "--unlearn_epochs", "1",
-    "--unlearn_lr", "0.01",
+    "--unlearn", "RL",  # Use RL (Random Labels) for SalUn
+    "--unlearn_epochs", "5",  # Increased from 3
+    "--unlearn_lr", "0.01",   # Increased from 0.001 - RL needs higher LR
     "--num_indexes_to_replace", str(num_to_forget),
     "--model_path", MODEL_PATH,
     "--save_dir", SAVE_DIR,

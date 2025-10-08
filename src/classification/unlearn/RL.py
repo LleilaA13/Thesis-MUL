@@ -15,10 +15,36 @@ def RL(data_loaders, model, criterion, optimizer, epoch, args, mask=None):
     forget_dataset = deepcopy(forget_loader.dataset)
     
     if args.dataset == "cifar100" or args.dataset == "TinyImagenet":
-        try:
-            forget_dataset.targets = np.random.randint(0, args.num_classes, forget_dataset.targets.shape)
-        except:
-            forget_dataset.dataset.targets = np.random.randint(0, args.num_classes, len(forget_dataset.dataset.targets))
+        # Handle Subset datasets correctly
+        if hasattr(forget_dataset, 'indices'):
+            # This is a Subset dataset - we need to modify only the subset's targets
+            base_dataset = forget_dataset.dataset
+            if not hasattr(base_dataset, 'targets'):
+                raise ValueError("Base dataset has no targets attribute")
+            
+            # Store original targets if not already stored
+            if not hasattr(base_dataset, 'original_forget_labels'):
+                base_dataset.original_forget_labels = {}
+            
+            # Create random labels only for the forget indices
+            forget_indices = forget_dataset.indices
+            for idx in forget_indices:
+                # Store original label if not already stored
+                if idx not in base_dataset.original_forget_labels:
+                    base_dataset.original_forget_labels[idx] = base_dataset.targets[idx]
+                # Assign random label (different from original)
+                original_label = base_dataset.original_forget_labels[idx]
+                random_label = np.random.randint(0, args.num_classes)
+                while random_label == original_label:  # Ensure it's different
+                    random_label = np.random.randint(0, args.num_classes)
+                base_dataset.targets[idx] = random_label
+            print(f"[DEBUG] Assigned random labels to {len(forget_indices)} forget samples")
+        else:
+            # Regular dataset - assign random labels normally
+            try:
+                forget_dataset.targets = np.random.randint(0, args.num_classes, forget_dataset.targets.shape)
+            except:
+                forget_dataset.dataset.targets = np.random.randint(0, args.num_classes, len(forget_dataset.dataset.targets))
     
         retain_dataset = retain_loader.dataset
         train_dataset = torch.utils.data.ConcatDataset([forget_dataset,retain_dataset])

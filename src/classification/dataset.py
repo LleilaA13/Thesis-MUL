@@ -391,13 +391,16 @@ class TinyImageNetDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path, target = self.imgs[idx]
-        img = transforms.ToTensor()(Image.open(img_path).convert("RGB"))
+        img = Image.open(img_path).convert("RGB")
         
-        if self.norm_trans is not None:
-            img = self.norm_trans(img)
-            
         if self.transform is not None:
             img = self.transform(img)
+        else:
+            # If no transform is provided, at least convert to tensor
+            img = transforms.ToTensor()(img)
+            
+        if self.norm_trans is not None:
+            img = self.norm_trans(img)
             
         return img, target
 
@@ -419,8 +422,11 @@ class TinyImageNet:
         self.tr_train = [
             transforms.RandomCrop(64, padding=4),
             transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
         ]
-        self.tr_test = []
+        self.tr_test = [
+            transforms.ToTensor(),
+        ]
 
         self.tr_train = transforms.Compose(self.tr_train)
         self.tr_test = transforms.Compose(self.tr_test)
@@ -517,10 +523,11 @@ class TinyImageNet:
             )
             if num_indexes_to_replace is None or num_indexes_to_replace == 500:
                 test_set.targets = np.array(test_set.targets)
-                test_set.imgs = test_set.imgs[test_set.targets != class_to_replace]
-                test_set.targets = test_set.targets[
-                    test_set.targets != class_to_replace
-                ]
+                # Create boolean mask for filtering
+                keep_mask = test_set.targets != class_to_replace
+                # Filter imgs using list comprehension since it's a list
+                test_set.imgs = [img for i, img in enumerate(test_set.imgs) if keep_mask[i]]
+                test_set.targets = test_set.targets[keep_mask]
                 test_set.targets = test_set.targets.tolist()
         if indexes_to_replace is not None:
             replace_indexes(

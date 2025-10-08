@@ -89,7 +89,7 @@ def main():
 
      print(f"[*] Loading forget mask from {args.subset_indices_path}")
      subset_mask = torch.load(args.subset_indices_path)
-     subset_mask = subset_mask.bool()
+     print(f"[*] Loaded boolean mask: {subset_mask.sum().item()} samples marked for forgetting")
 
 
      full_labels = torch.load(args.train_y_file)
@@ -176,7 +176,7 @@ def main():
         else:
          dataset = marked_loader.dataset
 
-        forget_mask = torch.load(args.subset_indices_path).bool()  # 1 = forget, 0 = retain
+        forget_mask = subset_mask  # Use the boolean mask we loaded
 
         print("[DEBUG] Loaded forget mask of length:", len(forget_mask))
         print("[DEBUG] #Forget samples:", forget_mask.sum().item())
