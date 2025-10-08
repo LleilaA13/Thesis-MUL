@@ -5,7 +5,8 @@ import torch
 from tqdm import tqdm
 
 # === GPU Configuration ===
-# Set which GPU to use (0 or 1, or "0,1" for both)
+# Set which GPU to use 
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1 which has more free memory
 print(f"[*] Using GPU(s): {os.environ.get('CUDA_VISIBLE_DEVICES', 'default')}")
 
@@ -24,9 +25,9 @@ TIN_IMAGENET_DIR = os.path.join(current_dir, "datasets/tiny-imagenet-200")
 MODEL_PATH = os.path.join(current_dir, "src/classification/models/resnet50_pretrained.pth")  # Update to correct path
 FORGET_MASK_PATH = os.path.join(current_dir, "dogs_forget_mask_boolean.pt")
 SALIENCY_DIR = os.path.join(current_dir, "masks/resnet50_dogs_forgetting")
-SAVE_DIR = os.path.join(current_dir, "models/resnet50_dogs_forgetting/mask0_5")
+SAVE_DIR = os.path.join(current_dir, "models/resnet50_dogs_forgetting/mask0_5_salun")
 RESULTS_DIR = os.path.join(current_dir, "results/resnet50_dogs_forgetting")
-MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.3.pt")  # or another threshold
+MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.5.pt")  # SalUn uses 0.5 as standard
 
 os.makedirs(SALIENCY_DIR, exist_ok=True)
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -124,8 +125,8 @@ env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/main_random.py"),
     "--unlearn", "RL",  # CORRECT: Use RL (Random Labels) for SalUn as per official docs
-    "--unlearn_epochs", "10",  # Increased from 3
-    "--unlearn_lr", "0.05",   # Increased from 0.001 - RL needs higher LR
+    "--unlearn_epochs", "10",  # SalUn standard: 10 epochs with very low LR
+    "--unlearn_lr", "0.005",  # SalUn-style: much lower LR
     "--num_indexes_to_replace", str(num_to_forget),
     "--model_path", MODEL_PATH,
     "--save_dir", SAVE_DIR,

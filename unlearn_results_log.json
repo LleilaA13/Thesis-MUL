@@ -14,5 +14,37 @@
       "loss": 0.5
     },
     "notes": "First successful run after fixes - major improvement from 70% baseline"
+  },
+  {
+    "timestamp": "2025-10-08T17:48:56.312685",
+    "forget_type": "dogs",
+    "parameters": {
+      "epochs": 10,
+      "lr": 0.05,
+      "mask_threshold": 0.3
+    },
+    "results": {
+      "forget_acc": 44.67,
+      "retain_acc": 38.7,
+      "train_acc": 55.9,
+      "loss": 1.96
+    },
+    "notes": "Aggressive approach - significant improvement! LR 5x higher, mask 80% blocked, 2x epochs"
+  },
+  {
+    "timestamp": "2025-10-08T18:08:22.010346",
+    "forget_type": "dogs",
+    "parameters": {
+      "epochs": 7,
+      "lr": 0.03,
+      "mask_threshold": 0.4
+    },
+    "results": {
+      "forget_acc": 50.67,
+      "retain_acc": 47.75,
+      "train_acc": "not_available",
+      "loss": "not_available"
+    },
+    "notes": "Balanced approach - both accuracies ~50%, suggests random performance. Model may be over-damaged."
   }
 ]
