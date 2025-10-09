@@ -25,7 +25,7 @@ TIN_IMAGENET_DIR = os.path.join(current_dir, "datasets/tiny-imagenet-200")
 MODEL_PATH = os.path.join(current_dir, "src/classification/models/resnet50_pretrained.pth")  # Update to correct path
 FORGET_MASK_PATH = os.path.join(current_dir, "dogs_forget_mask_boolean.pt")
 SALIENCY_DIR = os.path.join(current_dir, "masks/resnet50_dogs_forgetting")
-SAVE_DIR = os.path.join(current_dir, "models/resnet50_dogs_forgetting/mask0_5_salun")
+SAVE_DIR = os.path.join(current_dir, "models/resnet50_dogs_forgetting/mask0_5_GA_method")
 RESULTS_DIR = os.path.join(current_dir, "results/resnet50_dogs_forgetting")
 MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.5.pt")  # CONSERVATIVE: Use standard mask (0.5 = blocks 50% weights)
 
@@ -123,12 +123,12 @@ print("[*] Using CONSERVATIVE parameters to preserve model functionality...")
 env = os.environ.copy()
 env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
 
-# ULTRA-CONSERVATIVE: Preserve retain accuracy above all
+# GA METHOD: Same successful parameters as cats
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/main_random.py"),
-    "--unlearn", "RL",  # Random Labels (most stable)
-    "--unlearn_epochs", "5",  # REDUCED: Only 5 epochs to minimize damage
-    "--unlearn_lr", "0.01",  # REDUCED: Even lower LR (was 0.013, now 0.01)
+    "--unlearn", "GA",  # GA (Gradient Ascent) - proven successful for cats
+    "--unlearn_epochs", "1",  # Same as successful cats experiment
+    "--unlearn_lr", "0.00001",  # Same ultra-low LR as successful cats
     "--num_indexes_to_replace", str(num_to_forget),
     "--model_path", MODEL_PATH,
     "--save_dir", SAVE_DIR,
@@ -142,12 +142,36 @@ subprocess.run([
 ], check=True, env=env)
 
 print("\n[✓] Dog-class forgetting complete using SalUn + ResNet-50.")
-print("[*] ULTRA-CONSERVATIVE parameters applied (prioritizing retain accuracy):")
-print(f"    - Method: RL (Random Labels - most stable)")
-print(f"    - Learning rate: 0.01 (reduced from 0.013)")
-print(f"    - Epochs: 5 (reduced from 10)")
-print(f"    - Mask: 0.5 (standard - blocks 50% of weights)")
-print(f"    - TARGET: ~50-60% forget accuracy, >70% retain accuracy")
+print("[*] Dog-GA-METHOD parameters applied:")
+print(f"    - Method: GA (Gradient Ascent) - same as successful cats")
+print(f"    - Learning rate: 0.00001 (ultra-low, same as cats)")
+print(f"    - Epochs: 1 (minimal, same as cats)")
+print(f"    - Mask: 0.5 (blocks 50% of weights)")
+print(f"    - TARGET: <50% forget accuracy, >55% retain accuracy")
+print(f"    - COMPARISON: Testing if GA works better than RL for dogs too")
+
+# Optional: Log results (uncomment if results_tracker.py exists)
+try:
+    from results_tracker import log_experiment
+    log_experiment(
+        forget_type="dogs",
+        parameters={
+            "epochs": 1,
+            "lr": 0.00001,
+            "mask_threshold": 0.5,
+            "method": "GA"
+        },
+        results={
+            "forget_acc": "TBD",  # Update with actual results
+            "retain_acc": "TBD"   # Update with actual results
+        },
+        notes="GA method test for dogs - same parameters as successful cats experiment (21% forget, 53.73% retain)"
+    )
+    print("[✓] Results logged to unlearn_results_log.json")
+except ImportError:
+    print("[!] Could not import results_tracker, skipping logging")
+except Exception as e:
+    print(f"[!] Error logging results: {e}")
 
 # Add results tracking
 print("\n[*] Running results evaluation...")
