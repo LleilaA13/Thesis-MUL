@@ -29,7 +29,7 @@ TIN_IMAGENET_DIR = os.path.join(current_dir, "datasets/tiny-imagenet-200")
 MODEL_PATH = os.path.join(current_dir, "src/classification/models/resnet50_pretrained.pth")
 FORGET_MASK_PATH = os.path.join(current_dir, f"{FORGET_TYPE}_forget_mask_boolean.pt")
 SALIENCY_DIR = os.path.join(current_dir, f"masks/resnet50_{FORGET_TYPE}_forgetting")
-SAVE_DIR = os.path.join(current_dir, f"models/resnet50_{FORGET_TYPE}_forgetting/mask0_5")
+SAVE_DIR = os.path.join(current_dir, f"models/resnet50_{FORGET_TYPE}_forgetting/mask0_5_salun")
 RESULTS_DIR = os.path.join(current_dir, f"results/resnet50_{FORGET_TYPE}_forgetting")
 MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.5.pt")
 
@@ -41,10 +41,10 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 # First, check if the forget mask exists, if not, create it
 if not os.path.exists(FORGET_MASK_PATH):
     print(f"\n[!] Forget mask not found at {FORGET_MASK_PATH}")
-    print("[*] Creating vehicle forget mask...")
+    print("[*] Creating cats forget mask...")
     
     # Import and run the helper function
-    helper_script = os.path.join(current_dir, "create_vehicle_forget_mask.py")
+    helper_script = os.path.join(current_dir, "create_cat_forget_mask.py")
     subprocess.run(["python", helper_script], check=True)
 
 # === Step 2: Train or load base model ===
@@ -114,8 +114,8 @@ subprocess.run([
     "--arch", ARCH,
     "--dataset", DATASET,
     "--imagenet_arch",  # Important: Use ImageNet architecture to match trained model
-    "--train_y_file", os.path.join(current_dir, "labels", "train_ys.pth"),
-    "--val_y_file", os.path.join(current_dir, "labels", "val_ys.pth")
+    "--train_y_file", os.path.join(current_dir, "labels_tinyimagenet", "train_ys.pth"),
+    "--val_y_file", os.path.join(current_dir, "labels_tinyimagenet", "val_ys.pth")
 ], check=True, env=env)
 
 # === Step 4: Run SalUn unlearning ===
@@ -127,9 +127,9 @@ env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
 
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/main_random.py"),
-    "--unlearn", "RL",  # Use RL (Random Labels) for SalUn
-    "--unlearn_epochs", "5",  # Increased from 3
-    "--unlearn_lr", "0.01",   # Increased from 0.001 - RL needs higher LR
+    "--unlearn", "RL",  # Use RL (Random Labels) for SalUn - SALUN ALIGNED
+    "--unlearn_epochs", "10",  # SalUn standard: 10 epochs with very low LR
+    "--unlearn_lr", "0.005",  # SalUn-style: much lower LR for stability
     "--num_indexes_to_replace", str(num_to_forget),
     "--model_path", MODEL_PATH,
     "--save_dir", SAVE_DIR,
@@ -138,8 +138,14 @@ subprocess.run([
     "--arch", ARCH,
     "--dataset", DATASET,
     "--imagenet_arch",  # Important: Use ImageNet architecture to match trained model
-    "--train_y_file", os.path.join(current_dir, "labels", "train_ys.pth"),
-    "--val_y_file", os.path.join(current_dir, "labels", "val_ys.pth")
+    "--train_y_file", os.path.join(current_dir, "labels_tinyimagenet", "train_ys.pth"),
+    "--val_y_file", os.path.join(current_dir, "labels_tinyimagenet", "val_ys.pth")
 ], check=True, env=env)
 
-print("\n[✓] Vehicle-class forgetting complete using SalUn + ResNet-50.")
+print("\n[✓] Cat-class forgetting complete using SalUn + ResNet-50.")
+print("[*] SalUn-aligned parameters applied:")
+print(f"    - Method: RL (Random Labels)")
+print(f"    - Learning rate: 0.005 (SalUn paper standard)")
+print(f"    - Epochs: 10 (SalUn standard)")
+print(f"    - Mask: 0.5 (blocks 50% of weights)")
+print(f"    - TARGET: <50% forget accuracy, >55% retain accuracy")

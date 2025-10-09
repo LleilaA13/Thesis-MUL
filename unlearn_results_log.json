@@ -46,5 +46,54 @@
       "loss": "not_available"
     },
     "notes": "Balanced approach - both accuracies ~50%, suggests random performance. Model may be over-damaged."
+  },
+  {
+    "timestamp": "2025-10-08T20:28:24.136817",
+    "forget_type": "dogs",
+    "parameters": {
+      "epochs": 10,
+      "lr": 0.005,
+      "mask_threshold": 0.5
+    },
+    "results": {
+      "forget_acc": 62.0,
+      "retain_acc": 66.52,
+      "train_acc": "not_available",
+      "loss": "not_available"
+    },
+    "notes": "Moderate forget accuracy - some unlearning but not fully successful"
+  },
+  {
+    "timestamp": "2025-10-08T21:15:00.000000",
+    "forget_type": "dogs",
+    "parameters": {
+      "epochs": 10,
+      "lr": 0.013,
+      "mask_threshold": 0.5,
+      "method": "RL"
+    },
+    "results": {
+      "forget_acc": 48.67,
+      "retain_acc": 54.82,
+      "train_acc": "55.078",
+      "loss": "1.9563"
+    },
+    "notes": "Conservative parameters (paper's original LR=0.013). Good forget accuracy but retain still too low. Better than aggressive approach that caused total collapse."
+  },
+  {
+    "timestamp": "2025-10-09T09:32:43.211866",
+    "forget_type": "cats",
+    "parameters": {
+      "epochs": 10,
+      "lr": 0.005,
+      "mask_threshold": 0.5
+    },
+    "results": {
+      "forget_acc": 67.0,
+      "retain_acc": 67.16,
+      "train_acc": 99.96,
+      "loss": 0.0067
+    },
+    "notes": "SalUn-aligned parameters (LR=0.005, epochs=10, mask=0.5). CONCERN: Both accuracies ~67% suggest model degradation despite low training loss."
   }
 ]
