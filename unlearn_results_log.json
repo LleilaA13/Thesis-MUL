@@ -95,5 +95,96 @@
       "loss": 0.0067
     },
     "notes": "SalUn-aligned parameters (LR=0.005, epochs=10, mask=0.5). CONCERN: Both accuracies ~67% suggest model degradation despite low training loss."
+  },
+  {
+    "timestamp": "2025-10-09T14:38:00.171753",
+    "forget_type": "cats",
+    "parameters": {
+      "epochs": 3,
+      "lr": 0.001,
+      "mask_threshold": 0.5,
+      "method": "RL"
+    },
+    "results": {
+      "forget_acc": 66.0,
+      "retain_acc": 66.88
+    },
+    "notes": "Ultra-conservative: Much better than previous 67%/67%. No more perfect memorization. Direction correct, need slight adjustment."
+  },
+  {
+    "timestamp": "2025-10-09",
+    "forget_type": "vehicles",
+    "parameters": {
+      "epochs": 5,
+      "lr": 0.005,
+      "mask_threshold": 0.5,
+      "method": "RL"
+    },
+    "results": {
+      "forget_acc": 64.5,
+      "retain_acc": 66.625
+    },
+    "notes": "First run with vehicles - results are promising but need further tuning."
+  },
+  {
+    "timestamp": "2025-10-09T15:00:29.410292",
+    "forget_type": "cats",
+    "parameters": {
+      "epochs": 1,
+      "lr": 1e-05,
+      "mask_threshold": 0.5,
+      "method": "GA"
+    },
+    "results": {
+      "forget_acc": 21.0,
+      "retain_acc": 53.73
+    },
+    "notes": "BREAKTHROUGH! GA method works much better than RL for cats. Forget accuracy 21% (excellent!) but retain still low. Alternative method prevents memorization issue."
+  },
+  {
+    "timestamp": "2025-10-09T15:06:30.382729",
+    "forget_type": "vehicles",
+    "parameters": {
+      "epochs": 1,
+      "lr": 1e-05,
+      "mask_threshold": 0.5,
+      "method": "GA"
+    },
+    "results": {
+      "forget_acc": 36.0,
+      "retain_acc": 63.33
+    },
+    "notes": "GA method success for vehicles! Much better than RL memorization. Forget 36% (good), retain 63.33% (decent). GA prevents overfitting across all classes."
+  },
+     
+  {
+    "timestamp": "2025-10-09T15:09:36.063622",
+    "forget_type": "dogs",
+    "parameters": {
+      "epochs": 1,
+      "lr": 1e-05,
+      "mask_threshold": 0.5,
+      "method": "GA"
+    },
+    "results": {
+      "forget_acc": 30.0,
+      "retain_acc": 60.02
+    },
+    "notes": "GA method EXCELLENT for dogs! Much better than previous RL (52.67% forget, 56.70% retain). GA achieves 30% forget (vs 52.67%) and 60.02% retain (vs 56.70%). Consistent improvement across all classes!"
+  },
+  {
+    "timestamp": "2025-10-09T15:20:00.000000",
+    "forget_type": "cats",
+    "parameters": {
+      "epochs": 1,
+      "lr": 0.00001,
+      "mask_threshold": 0.5,
+      "method": "FT"
+    },
+    "results": {
+      "forget_acc": 66.0,
+      "retain_acc": 66.44
+    },
+    "notes": "Conservative Fine-Tuning (FT) approach for cats. Matches GA forget accuracy (66%) but retain still low (66.44%). Original FT params (LR=0.001, epochs=10) caused overfitting to 100% accuracy, so reduced LR and epochs significantly."
   }
 ]

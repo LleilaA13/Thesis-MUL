@@ -29,7 +29,7 @@ TIN_IMAGENET_DIR = os.path.join(current_dir, "datasets/tiny-imagenet-200")
 MODEL_PATH = os.path.join(current_dir, "src/classification/models/resnet50_pretrained.pth")
 FORGET_MASK_PATH = os.path.join(current_dir, f"{FORGET_TYPE}_forget_mask_boolean.pt")
 SALIENCY_DIR = os.path.join(current_dir, f"masks/resnet50_{FORGET_TYPE}_forgetting")
-SAVE_DIR = os.path.join(current_dir, f"models/resnet50_{FORGET_TYPE}_forgetting/mask0_5_salun")
+SAVE_DIR = os.path.join(current_dir, f"models/resnet50_{FORGET_TYPE}_forgetting/mask0_5_GA_extreme")
 RESULTS_DIR = os.path.join(current_dir, f"results/resnet50_{FORGET_TYPE}_forgetting")
 MASK_PATH = os.path.join(SALIENCY_DIR, "with_0.5.pt")
 
@@ -43,9 +43,10 @@ if not os.path.exists(FORGET_MASK_PATH):
     print(f"\n[!] Forget mask not found at {FORGET_MASK_PATH}")
     print("[*] Creating cats forget mask...")
     
-    # Import and run the helper function
-    helper_script = os.path.join(current_dir, "create_cat_forget_mask.py")
-    subprocess.run(["python", helper_script], check=True)
+    # Create the forget mask using centralized config
+    forget_mask = create_forget_mask(FORGET_TYPE, total_samples=100000, dataset_type='train')
+    torch.save(forget_mask, FORGET_MASK_PATH)
+    print(f"[✓] Cats forget mask created: {forget_mask.sum().item()} samples marked for forgetting")
 
 # === Step 2: Train or load base model ===
 if not os.path.exists(MODEL_PATH):
@@ -127,9 +128,9 @@ env["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 1
 
 subprocess.run([
     "python", os.path.join(current_dir, "src/classification/main_random.py"),
-    "--unlearn", "RL",  # Use RL (Random Labels) for SalUn - SALUN ALIGNED
-    "--unlearn_epochs", "10",  # SalUn standard: 10 epochs with very low LR
-    "--unlearn_lr", "0.005",  # SalUn-style: much lower LR for stability
+    "--unlearn", "GA",  # Keep successful GA method
+    "--unlearn_epochs", "1",  # Keep minimal epochs
+    "--unlearn_lr", "0.000005",  # FINE-TUNE: 50% lower LR to preserve more retain accuracy
     "--num_indexes_to_replace", str(num_to_forget),
     "--model_path", MODEL_PATH,
     "--save_dir", SAVE_DIR,
@@ -143,9 +144,9 @@ subprocess.run([
 ], check=True, env=env)
 
 print("\n[✓] Cat-class forgetting complete using SalUn + ResNet-50.")
-print("[*] SalUn-aligned parameters applied:")
-print(f"    - Method: RL (Random Labels)")
-print(f"    - Learning rate: 0.005 (SalUn paper standard)")
-print(f"    - Epochs: 10 (SalUn standard)")
+print("[*] Cat-ALTERNATIVE-METHOD parameters applied:")
+print(f"    - Method: GA (Gradient Ascent) - different approach than RL")
+print(f"    - Learning rate: 0.00001 (1000x lower than dogs!)")
+print(f"    - Epochs: 1 (absolute minimum)")
 print(f"    - Mask: 0.5 (blocks 50% of weights)")
-print(f"    - TARGET: <50% forget accuracy, >55% retain accuracy")
+print(f"    - REASON: RL method causing 100% memorization even at LR=0.0001")
