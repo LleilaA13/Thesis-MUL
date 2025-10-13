@@ -41,7 +41,12 @@ def train(train_loader, model, criterion, optimizer, epoch, args, mask=None, l1=
             torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
         )
         for i, data in enumerate(train_loader):
-            image, target = get_x_y_from_data_dict(data, device)
+            # Handle both ImageNet dict format and TinyImageNet tuple format
+            if isinstance(data, dict):
+                image, target = get_x_y_from_data_dict(data, device)
+            else:
+                # TinyImageNet returns (image, target) tuples
+                image, target = data[0].to(device), data[1].to(device)
             if epoch < args.warmup:
                 utils.warmup_lr(
                     epoch, i + 1, optimizer, one_epoch_step=len(train_loader), args=args

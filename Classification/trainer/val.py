@@ -17,7 +17,12 @@ def validate(val_loader, model, criterion, args):
             torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
         )
         for i, data in enumerate(val_loader):
-            image, target = get_x_y_from_data_dict(data, device)
+            # Handle both ImageNet dict format and TinyImageNet tuple format
+            if isinstance(data, dict):
+                image, target = get_x_y_from_data_dict(data, device)
+            else:
+                # TinyImageNet returns (image, target) tuples
+                image, target = data[0].to(device), data[1].to(device)
             with torch.no_grad():
                 output = model(image)
                 loss = criterion(output, target)
