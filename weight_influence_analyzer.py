@@ -6,11 +6,18 @@ Analyzes which specific weights and layers are most influenced by random data fo
 
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    PLOTTING_AVAILABLE = True
+except ImportError:
+    PLOTTING_AVAILABLE = False
+    print("⚠️  matplotlib/seaborn not available. Plotting will be disabled.")
+
 from collections import defaultdict
 import json
 import os
+from datetime import datetime
 
 class WeightInfluenceAnalyzer:
     """Analyzes weight changes caused by random data forgetting"""
@@ -23,7 +30,7 @@ class WeightInfluenceAnalyzer:
     
     def load_baseline(self):
         """Load baseline model weights"""
-        checkpoint = torch.load(self.baseline_model_path, map_location='cpu')
+        checkpoint = torch.load(self.baseline_model_path, map_location='cpu', weights_only=False)
         if 'state_dict' in checkpoint:
             self.baseline_weights = checkpoint['state_dict']
         else:
@@ -32,13 +39,31 @@ class WeightInfluenceAnalyzer:
     
     def analyze_layer_sensitivity(self, experiment_name):
         """Analyze which layers are most sensitive to forgetting"""
-        model_path = os.path.join(self.experiment_models_dir, experiment_name, 'unlearn', 'model_best.pth.tar')
+        # Updated to work with your directory structure
+        model_path = os.path.join(self.experiment_models_dir, experiment_name, 'RLcheckpoint.pth.tar')
         
+        # Try alternative paths if the first doesn't exist
         if not os.path.exists(model_path):
-            print(f"❌ Model not found: {model_path}")
-            return None
+            # Try without RLcheckpoint naming
+            alt_paths = [
+                os.path.join(self.experiment_models_dir, experiment_name, 'checkpoint.pth.tar'),
+                os.path.join(self.experiment_models_dir, experiment_name, 'model_best.pth.tar'),
+                os.path.join(self.experiment_models_dir, experiment_name, 'unlearned_model.pth.tar')
+            ]
+            
+            for alt_path in alt_paths:
+                if os.path.exists(alt_path):
+                    model_path = alt_path
+                    break
+            else:
+                print(f"❌ Model not found for {experiment_name}")
+                print(f"   Tried: {model_path}")
+                for alt_path in alt_paths:
+                    print(f"   Tried: {alt_path}")
+                return None
         
-        checkpoint = torch.load(model_path, map_location='cpu')
+        print(f"📊 Analyzing: {model_path}")
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
         if 'state_dict' in checkpoint:
             unlearn_weights = checkpoint['state_dict']
         else:
@@ -48,31 +73,75 @@ class WeightInfluenceAnalyzer:
         
         for layer_name in self.baseline_weights.keys():
             if layer_name in unlearn_weights:
-                baseline_layer = self.baseline_weights[layer_name]
-                unlearn_layer = unlearn_weights[layer_name]
-                
-                # Calculate various metrics
-                diff = torch.abs(baseline_layer - unlearn_layer)
-                relative_diff = diff / (torch.abs(baseline_layer) + 1e-8)
-                
-                layer_analysis[layer_name] = {
-                    'mean_absolute_change': diff.mean().item(),
-                    'max_absolute_change': diff.max().item(),
-                    'std_absolute_change': diff.std().item(),
-                    'mean_relative_change': relative_diff.mean().item(),
-                    'max_relative_change': relative_diff.max().item(),
-                    'percentage_changed': (diff > 1e-6).float().mean().item() * 100,
-                    'layer_shape': list(baseline_layer.shape),
-                    'total_parameters': baseline_layer.numel()
-                }
+                try:
+                    baseline_layer = self.baseline_weights[layer_name]
+                    unlearn_layer = unlearn_weights[layer_name]
+                    
+                    # Ensure tensors are float for calculations
+                    if baseline_layer.dtype in [torch.int64, torch.int32, torch.int16, torch.int8]:
+                        baseline_layer = baseline_layer.float()
+                    if unlearn_layer.dtype in [torch.int64, torch.int32, torch.int16, torch.int8]:
+                        unlearn_layer = unlearn_layer.float()
+                    
+                    # Calculate various metrics
+                    diff = torch.abs(baseline_layer - unlearn_layer)
+                    relative_diff = diff / (torch.abs(baseline_layer) + 1e-8)
+                    
+                    # Handle NaN values and convert to safe float values
+                    def safe_float(tensor_value):
+                        """Convert tensor value to safe float, handling NaN/inf"""
+                        val = tensor_value.item()
+                        if np.isnan(val) or np.isinf(val):
+                            return 0.0
+                        return val
+                    
+                    def safe_percentage(tensor):
+                        """Calculate safe percentage, handling NaN"""
+                        result = (tensor > 1e-6).float().mean()
+                        val = result.item()
+                        if np.isnan(val) or np.isinf(val):
+                            return 0.0
+                        return val * 100
+                    
+                    layer_analysis[layer_name] = {
+                        'mean_absolute_change': safe_float(diff.mean()),
+                        'max_absolute_change': safe_float(diff.max()),
+                        'std_absolute_change': safe_float(diff.std()),
+                        'mean_relative_change': safe_float(relative_diff.mean()),
+                        'max_relative_change': safe_float(relative_diff.max()),
+                        'percentage_changed': safe_percentage(diff),
+                        'layer_shape': list(baseline_layer.shape),
+                        'total_parameters': baseline_layer.numel()
+                    }
+                except Exception as e:
+                    print(f"⚠️  Skipping layer {layer_name} due to error: {e}")
+                    print(f"   Baseline dtype: {self.baseline_weights[layer_name].dtype}")
+                    print(f"   Unlearn dtype: {unlearn_weights[layer_name].dtype}")
+                    continue
         
         return layer_analysis
     
     def analyze_weight_magnitude_distribution(self, experiment_name):
         """Analyze how weight magnitude distributions change"""
-        model_path = os.path.join(self.experiment_models_dir, experiment_name, 'unlearn', 'model_best.pth.tar')
+        # Updated to work with your directory structure
+        model_path = os.path.join(self.experiment_models_dir, experiment_name, 'RLcheckpoint.pth.tar')
         
-        checkpoint = torch.load(model_path, map_location='cpu')
+        # Try alternative paths if the first doesn't exist
+        if not os.path.exists(model_path):
+            alt_paths = [
+                os.path.join(self.experiment_models_dir, experiment_name, 'checkpoint.pth.tar'),
+                os.path.join(self.experiment_models_dir, experiment_name, 'model_best.pth.tar'),
+                os.path.join(self.experiment_models_dir, experiment_name, 'unlearned_model.pth.tar')
+            ]
+            
+            for alt_path in alt_paths:
+                if os.path.exists(alt_path):
+                    model_path = alt_path
+                    break
+            else:
+                return None
+        
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
         if 'state_dict' in checkpoint:
             unlearn_weights = checkpoint['state_dict']
         else:
@@ -82,17 +151,35 @@ class WeightInfluenceAnalyzer:
         
         for layer_name in self.baseline_weights.keys():
             if layer_name in unlearn_weights and 'weight' in layer_name:
-                baseline_layer = self.baseline_weights[layer_name].flatten()
-                unlearn_layer = unlearn_weights[layer_name].flatten()
-                
-                distribution_analysis[layer_name] = {
-                    'baseline_mean': baseline_layer.mean().item(),
-                    'baseline_std': baseline_layer.std().item(),
-                    'unlearn_mean': unlearn_layer.mean().item(),
-                    'unlearn_std': unlearn_layer.std().item(),
-                    'kl_divergence': self.calculate_kl_divergence(baseline_layer, unlearn_layer),
-                    'wasserstein_distance': self.calculate_wasserstein_distance(baseline_layer, unlearn_layer)
-                }
+                try:
+                    baseline_layer = self.baseline_weights[layer_name].flatten()
+                    unlearn_layer = unlearn_weights[layer_name].flatten()
+                    
+                    # Ensure tensors are float for calculations
+                    if baseline_layer.dtype in [torch.int64, torch.int32, torch.int16, torch.int8]:
+                        baseline_layer = baseline_layer.float()
+                    if unlearn_layer.dtype in [torch.int64, torch.int32, torch.int16, torch.int8]:
+                        unlearn_layer = unlearn_layer.float()
+                    
+                    # Handle NaN values and convert to safe float values
+                    def safe_float(tensor_value):
+                        """Convert tensor value to safe float, handling NaN/inf"""
+                        val = tensor_value.item()
+                        if np.isnan(val) or np.isinf(val):
+                            return 0.0
+                        return val
+                    
+                    distribution_analysis[layer_name] = {
+                        'baseline_mean': safe_float(baseline_layer.mean()),
+                        'baseline_std': safe_float(baseline_layer.std()),
+                        'unlearn_mean': safe_float(unlearn_layer.mean()),
+                        'unlearn_std': safe_float(unlearn_layer.std()),
+                        'kl_divergence': self.calculate_kl_divergence(baseline_layer, unlearn_layer),
+                        'wasserstein_distance': self.calculate_wasserstein_distance(baseline_layer, unlearn_layer)
+                    }
+                except Exception as e:
+                    print(f"⚠️  Skipping distribution analysis for {layer_name}: {e}")
+                    continue
         
         return distribution_analysis
     
@@ -124,16 +211,37 @@ class WeightInfluenceAnalyzer:
     
     def calculate_wasserstein_distance(self, p, q):
         """Calculate Wasserstein distance between two distributions"""
-        from scipy.stats import wasserstein_distance
-        p_np = p.detach().numpy()
-        q_np = q.detach().numpy()
-        return wasserstein_distance(p_np, q_np)
+        try:
+            from scipy.stats import wasserstein_distance
+            p_np = p.detach().numpy()
+            q_np = q.detach().numpy()
+            return wasserstein_distance(p_np, q_np)
+        except ImportError:
+            print("⚠️  scipy not available - using L2 distance instead")
+            # Fallback to L2 distance
+            return torch.norm(p - q, p=2).item()
     
     def identify_most_affected_weights(self, experiment_name, top_k=10):
         """Identify individual weights most affected by forgetting"""
-        model_path = os.path.join(self.experiment_models_dir, experiment_name, 'unlearn', 'model_best.pth.tar')
+        # Updated to work with your directory structure
+        model_path = os.path.join(self.experiment_models_dir, experiment_name, 'RLcheckpoint.pth.tar')
         
-        checkpoint = torch.load(model_path, map_location='cpu')
+        # Try alternative paths if the first doesn't exist
+        if not os.path.exists(model_path):
+            alt_paths = [
+                os.path.join(self.experiment_models_dir, experiment_name, 'checkpoint.pth.tar'),
+                os.path.join(self.experiment_models_dir, experiment_name, 'model_best.pth.tar'),
+                os.path.join(self.experiment_models_dir, experiment_name, 'unlearned_model.pth.tar')
+            ]
+            
+            for alt_path in alt_paths:
+                if os.path.exists(alt_path):
+                    model_path = alt_path
+                    break
+            else:
+                return []
+        
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
         if 'state_dict' in checkpoint:
             unlearn_weights = checkpoint['state_dict']
         else:
@@ -146,6 +254,12 @@ class WeightInfluenceAnalyzer:
             if layer_name in unlearn_weights and 'weight' in layer_name:
                 baseline_layer = self.baseline_weights[layer_name]
                 unlearn_layer = unlearn_weights[layer_name]
+                
+                # Ensure tensors are float for calculations
+                if baseline_layer.dtype in [torch.int64, torch.int32, torch.int16, torch.int8]:
+                    baseline_layer = baseline_layer.float()
+                if unlearn_layer.dtype in [torch.int64, torch.int32, torch.int16, torch.int8]:
+                    unlearn_layer = unlearn_layer.float()
                 
                 diff = torch.abs(baseline_layer - unlearn_layer)
                 relative_diff = diff / (torch.abs(baseline_layer) + 1e-8)
@@ -176,9 +290,16 @@ class WeightInfluenceAnalyzer:
     
     def visualize_layer_changes(self, analysis_results, save_dir='experiments/random_forgetting/visualizations'):
         """Create visualizations of layer changes"""
+        if not PLOTTING_AVAILABLE:
+            print("⚠️  Skipping visualization - matplotlib not available")
+            return
+            
         os.makedirs(save_dir, exist_ok=True)
         
         for exp_name, layer_data in analysis_results.items():
+            if not layer_data:  # Skip if no data
+                continue
+                
             # Extract data for plotting
             layer_names = list(layer_data.keys())
             mean_changes = [layer_data[name]['mean_relative_change'] for name in layer_names]
@@ -211,8 +332,14 @@ class WeightInfluenceAnalyzer:
         """Generate comprehensive analysis report"""
         os.makedirs(output_dir, exist_ok=True)
         
-        # Get all experiment directories
-        exp_dirs = [d for d in os.listdir(self.experiment_models_dir) if d != 'baseline']
+        # Get all experiment directories - Updated for your structure
+        exp_dirs = [d for d in os.listdir(self.experiment_models_dir) 
+                   if os.path.isdir(os.path.join(self.experiment_models_dir, d)) 
+                   and 'random_forgetting' in d]
+        
+        print(f"Found {len(exp_dirs)} random forgetting experiments:")
+        for exp in exp_dirs:
+            print(f"  - {exp}")
         
         full_analysis = {}
         
@@ -241,8 +368,11 @@ class WeightInfluenceAnalyzer:
             json.dump(full_analysis, f, indent=2)
         
         # Generate visualizations
-        layer_analyses = {name: data['layer_sensitivity'] for name, data in full_analysis.items()}
-        self.visualize_layer_changes(layer_analyses)
+        layer_analyses = {name: data['layer_sensitivity'] for name, data in full_analysis.items() 
+                         if data.get('layer_sensitivity')}
+        if layer_analyses:
+            vis_dir = output_dir.replace('weight_analysis', 'visualizations')
+            self.visualize_layer_changes(layer_analyses, vis_dir)
         
         # Generate summary report
         self.generate_summary_report(full_analysis, output_dir)
@@ -291,20 +421,25 @@ class WeightInfluenceAnalyzer:
             f.write('\n'.join(report_lines))
 
 def main():
-    # Configuration
-    baseline_model = "experiments/random_forgetting/models/baseline/model_best.pth.tar"
-    experiments_dir = "experiments/random_forgetting/models"
+    # Configuration - Updated for your directory structure
+    baseline_model = "models/resnet50_pretrained.pth"  # Your baseline pretrained model
+    results_dir = "results"  # Your results directory
     
     if not os.path.exists(baseline_model):
-        print("❌ Baseline model not found. Please run the research pipeline first.")
+        print("❌ Baseline model not found. Please check the path.")
+        print(f"   Looking for: {baseline_model}")
         return
     
-    analyzer = WeightInfluenceAnalyzer(baseline_model, experiments_dir)
+    if not os.path.exists(results_dir):
+        print("❌ Results directory not found. Please check the path.")
+        print(f"   Looking for: {results_dir}")
+        return
+    
+    analyzer = WeightInfluenceAnalyzer(baseline_model, results_dir)
     analysis_results = analyzer.generate_comprehensive_report()
     
     print("🎉 Weight influence analysis complete!")
     print("📂 Check experiments/random_forgetting/weight_analysis/ for results")
 
 if __name__ == "__main__":
-    from datetime import datetime
     main()
