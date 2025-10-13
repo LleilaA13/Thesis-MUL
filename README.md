@@ -20,7 +20,7 @@
 <table align="center">
   <tr>
     <td align="center"> 
-      <img src="Images/thubnail_salun.jpg" alt="Examples" style="width: 400px;"/> 
+      <img src="docs/Images/thubnail_salun.jpg" alt="Examples" style="width: 400px;"/> 
     </td>
   </tr>
 </table>
@@ -30,12 +30,29 @@ This is the official code repository for the ICLR 2024 Spotlight paper [SalUn: E
 <table align="center">
   <tr>
     <td align="center"> 
-      <img src="Images/transition_new.gif" alt="Examples" style="width: 700px;"/> 
+      <img src="docs/Images/transition_new.gif" alt="Examples" style="width: 700px;"/> 
       <br>
       <em style="font-size: 18px;">  <strong style="font-size: 18px;">Figure 1:</strong> Example comparison of pre/after unlearning by SalUn. <br/> (Left) Concept "Nudity"; (Middle) Object "Dog"; (Right) Style "Sketch".</em>
     </td>
   </tr>
 </table>
+
+---
+
+## 🗂️ **Repository Organization** 
+
+This repository has been reorganized for better maintainability and research workflow:
+
+```
+📁 core/          # Core unlearning implementations (Classification algorithms)
+📁 analysis/      # Analysis tools, visualizations, and weight analysis
+📁 experiments/   # Experimental results, models, and masks  
+📁 datasets/      # Data and labels
+📁 docs/          # Documentation, guides, and images
+📁 scripts/       # Utility scripts and research pipelines
+```
+
+📖 **See [Repository Organization Guide](docs/REPOSITORY_ORGANIZATION.md) for detailed structure and usage.**
 
 ## News ## 
 :mega: Feel free to check out our [new work](https://github.com/OPTML-Group/Unlearn-Simple) about **a simple but effective unlearning method** for LLMs!
