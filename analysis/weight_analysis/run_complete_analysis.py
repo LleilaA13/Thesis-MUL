@@ -12,9 +12,10 @@ def run_enhanced_visualizations():
     print("🎨 STEP 1: ENHANCED VISUALIZATIONS")
     print("="*50)
     
+    sys.path.append('../visualizations')
     from enhanced_visualization import EnhancedVisualizationGenerator
     
-    analysis_path = "experiments/good_results_weight_analysis/comprehensive_weight_analysis.json"
+    analysis_path = "../../experiments/good_results_weight_analysis/comprehensive_weight_analysis.json"
     
     if not os.path.exists(analysis_path):
         print(f"❌ Weight analysis not found: {analysis_path}")
@@ -32,17 +33,18 @@ def run_lucent_integration():
     print("="*50)
     
     try:
+        sys.path.append('../../scripts')
         from lucent_weight_integration import LucentWeightAnalyzer
         from datetime import datetime
         
         # Configuration
-        weight_analysis_path = "experiments/good_results_weight_analysis/comprehensive_weight_analysis.json"
+        weight_analysis_path = "../../experiments/good_results_weight_analysis/comprehensive_weight_analysis.json"
         
         model_paths = {
-            'baseline': 'models/resnet50_pretrained.pth',
-            'random_forgetting_10percent_RL_conservative': 'results/good_results/random_forgetting_10percent_RL_conservative/RLcheckpoint.pth.tar',
-            'random_forgetting_20percent_RL_tweak_conservative': 'results/good_results/random_forgetting_20percent_RL_tweak_conservative/RLcheckpoint.pth.tar',
-            'random_forgetting_30percent_RL_tweak_conservative': 'results/good_results/random_forgetting_30percent_RL_tweak_conservative/RLcheckpoint.pth.tar'
+            'baseline': '../../experiments/models/resnet50_pretrained.pth',
+            'random_forgetting_10percent_RL_conservative': '../../experiments/results/good_results/random_forgetting_10percent_RL_conservative/RLcheckpoint.pth.tar',
+            'random_forgetting_20percent_RL_tweak_conservative': '../../experiments/results/good_results/random_forgetting_20percent_RL_tweak_conservative/RLcheckpoint.pth.tar',
+            'random_forgetting_30percent_RL_tweak_conservative': '../../experiments/results/good_results/random_forgetting_30percent_RL_tweak_conservative/RLcheckpoint.pth.tar'
         }
         
         # Verify files exist

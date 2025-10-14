@@ -2,6 +2,7 @@
 """
 Auto-generated Lucent visualization script for random_forgetting_20percent_RL_tweak_conservative
 Targets the most affected channels/neurons identified by weight analysis
+Run from repository root directory: python experiments/channel_analysis/random_forgetting_20percent_RL_tweak_conservative/visualize_random_forgetting_20percent_RL_tweak_conservative.py
 """
 
 import torch
@@ -29,7 +30,7 @@ def load_model(model_path, device='auto'):
 
 def visualize_top_affected_channels():
     """Visualize the most affected channels"""
-    model_path = "results/good_results/random_forgetting_20percent_RL_tweak_conservative/RLcheckpoint.pth.tar"
+    model_path = "experiments/results/good_results/random_forgetting_20percent_RL_tweak_conservative/RLcheckpoint.pth.tar"
     output_dir = "experiments/channel_visualizations/random_forgetting_20percent_RL_tweak_conservative"
     
     os.makedirs(output_dir, exist_ok=True)

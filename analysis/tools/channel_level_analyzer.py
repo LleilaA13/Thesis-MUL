@@ -265,6 +265,7 @@ class ChannelLevelAnalyzer:
 """
 Auto-generated Lucent visualization script for {experiment_name}
 Targets the most affected channels/neurons identified by weight analysis
+Run from repository root directory: python experiments/channel_analysis/{experiment_name}/visualize_{experiment_name}.py
 """
 
 import torch
@@ -292,7 +293,7 @@ def load_model(model_path, device='auto'):
 
 def visualize_top_affected_channels():
     """Visualize the most affected channels"""
-    model_path = "results/good_results/{experiment_name}/RLcheckpoint.pth.tar"
+    model_path = "experiments/results/good_results/{experiment_name}/RLcheckpoint.pth.tar"
     output_dir = "experiments/channel_visualizations/{experiment_name}"
     
     os.makedirs(output_dir, exist_ok=True)
@@ -343,7 +344,7 @@ if __name__ == "__main__":
         
         return output_file
     
-    def analyze_all_experiments(self, experiments_dir='results/good_results', 
+    def analyze_all_experiments(self, experiments_dir='experiments/results/good_results', 
                                output_dir='experiments/channel_analysis'):
         """Analyze all experiments and generate comprehensive channel analysis"""
         os.makedirs(output_dir, exist_ok=True)
@@ -450,9 +451,12 @@ if __name__ == "__main__":
         report.append("## Usage")
         report.append("")
         report.append("```bash")
-        report.append("# Run visualization for specific experiment")
-        report.append("cd experiments/channel_analysis/[experiment_name]/")
-        report.append("python visualize_[experiment_name].py")
+        report.append("# Run visualization for specific experiment (from repository root)")
+        report.append("python experiments/channel_analysis/[experiment_name]/visualize_[experiment_name].py")
+        report.append("")
+        report.append("# Or run channel analysis from analysis tools directory")
+        report.append("cd analysis/tools")
+        report.append("python channel_level_analyzer.py")
         report.append("```")
         
         # Save report
@@ -464,13 +468,13 @@ if __name__ == "__main__":
 
 def main():
     """Main function to run channel-level analysis"""
-    baseline_model = "models/resnet50_pretrained.pth"
+    baseline_model = "experiments/models/resnet50_pretrained.pth"
     
     if not os.path.exists(baseline_model):
         print(f"❌ Baseline model not found: {baseline_model}")
         return
     
-    analyzer = ChannelLevelAnalyzer(baseline_model, "results/good_results")
+    analyzer = ChannelLevelAnalyzer(baseline_model, "experiments/results/good_results")
     analyzer.analyze_all_experiments()
 
 if __name__ == "__main__":

@@ -18,8 +18,8 @@ import json
 from datetime import datetime
 
 # Add Classification directory to path
-sys.path.append('./Classification')
-sys.path.append('./Classification/models')
+sys.path.append('../core/Classification')
+sys.path.append('../core/Classification/models')
 
 class RandomDataForgettingAnalyzer:
     """
@@ -34,11 +34,11 @@ class RandomDataForgettingAnalyzer:
     def setup_directories(self):
         """Create necessary directories for results"""
         dirs = [
-            'experiments/random_forgetting',
-            'experiments/random_forgetting/models',
-            'experiments/random_forgetting/masks',
-            'experiments/random_forgetting/visualizations',
-            'experiments/random_forgetting/weight_analysis'
+            '../experiments/random_forgetting',
+            '../experiments/random_forgetting/models',
+            '../experiments/random_forgetting/masks',
+            '../experiments/random_forgetting/visualizations',
+            '../experiments/random_forgetting/weight_analysis'
         ]
         for d in dirs:
             os.makedirs(d, exist_ok=True)

@@ -5,6 +5,8 @@ Analyzes the weight changes in your best performing unlearning experiments
 """
 
 import os
+import sys
+sys.path.append('../tools')
 from weight_influence_analyzer import WeightInfluenceAnalyzer
 
 def main():
@@ -12,8 +14,8 @@ def main():
     print("="*50)
     
     # Updated paths for good results
-    baseline_model = "models/resnet50_pretrained.pth"
-    good_results_dir = "results/good_results"
+    baseline_model = "../../experiments/models/resnet50_pretrained.pth"
+    good_results_dir = "../../experiments/results/good_results"
     
     print(f"📂 Baseline model: {baseline_model}")
     print(f"📂 Good results directory: {good_results_dir}")
@@ -50,14 +52,14 @@ def main():
     
     try:
         analysis_results = analyzer.generate_comprehensive_report(
-            output_dir='experiments/good_results_weight_analysis'
+            output_dir='../../experiments/good_results_weight_analysis'
         )
         
         print("\n✅ Good Results Analysis Complete!")
         print("📊 Results saved to:")
         print("   - experiments/good_results_weight_analysis/comprehensive_weight_analysis.json")
         print("   - experiments/good_results_weight_analysis/summary_report.md")
-        print("   - experiments/random_forgetting/visualizations/")
+        print("   - experiments/good_results_weight_analysis/visualizations/")
         
         # Detailed summary for good results
         print(f"\n🏆 GOOD RESULTS SUMMARY:")

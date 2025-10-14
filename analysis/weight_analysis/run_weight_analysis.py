@@ -4,6 +4,8 @@ Easy script to run weight influence analysis on your unlearning experiments
 """
 
 import os
+import sys
+sys.path.append('../tools')
 from weight_influence_analyzer import WeightInfluenceAnalyzer
 
 def main():
@@ -11,8 +13,8 @@ def main():
     print("="*50)
     
     # Check your current setup
-    baseline_model = "models/resnet50_pretrained.pth"
-    results_dir = "results/good_results"
+    baseline_model = "../../experiments/models/resnet50_pretrained.pth"
+    results_dir = "../../experiments/results/good_results"
     
     print(f"📂 Baseline model: {baseline_model}")
     print(f"📂 Results directory: {results_dir}")

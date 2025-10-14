@@ -6,8 +6,9 @@ echo "🚀 Random Data Forgetting + Feature Visualization Research Pipeline"
 echo "================================================================="
 
 # Check if we're in the right directory
-if [ ! -d "Classification" ]; then
-    echo "❌ Error: Please run this script from the Unlearn-Saliency directory"
+if [ ! -d "../core/Classification" ]; then
+    echo "❌ Error: Please run this script from the Unlearn-Saliency/scripts directory"
+    echo "   Or run from root: bash scripts/run_research_pipeline.sh"
     exit 1
 fi
 
@@ -18,8 +19,8 @@ fi
 
 # Make scripts executable
 chmod +x research_pipeline.py
-chmod +x weight_influence_analyzer.py
-chmod +x lucent_visualizer.py
+chmod +x ../analysis/tools/weight_influence_analyzer.py
+chmod +x ../analysis/visualizations/lucent_visualizer.py
 
 echo "✅ Environment setup complete!"
 echo ""
