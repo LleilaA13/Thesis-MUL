@@ -1,0 +1,192 @@
+[
+  {
+    "target": "layer3.0.conv3:902",
+    "type": "channel",
+    "influence_score": 3978.547607421875,
+    "description": "Channel 902 in layer3.0.conv3 (Change: 3978.5476)",
+    "layer_name": "layer3.0.conv3.weight",
+    "channel_index": 902
+  },
+  {
+    "target": "layer3.0.conv3:793",
+    "type": "channel",
+    "influence_score": 1097.4364013671875,
+    "description": "Channel 793 in layer3.0.conv3 (Change: 1097.4364)",
+    "layer_name": "layer3.0.conv3.weight",
+    "channel_index": 793
+  },
+  {
+    "target": "conv1:23",
+    "type": "channel",
+    "influence_score": 633.7078857421875,
+    "description": "Channel 23 in conv1 (Change: 633.7079)",
+    "layer_name": "conv1.weight",
+    "channel_index": 23
+  },
+  {
+    "target": "layer3.5.conv2:98",
+    "type": "channel",
+    "influence_score": 613.1883544921875,
+    "description": "Channel 98 in layer3.5.conv2 (Change: 613.1884)",
+    "layer_name": "layer3.5.conv2.weight",
+    "channel_index": 98
+  },
+  {
+    "target": "layer3.1.conv2:123",
+    "type": "channel",
+    "influence_score": 416.78753662109375,
+    "description": "Channel 123 in layer3.1.conv2 (Change: 416.7875)",
+    "layer_name": "layer3.1.conv2.weight",
+    "channel_index": 123
+  },
+  {
+    "target": "layer3.4.conv2:200",
+    "type": "channel",
+    "influence_score": 262.2290954589844,
+    "description": "Channel 200 in layer3.4.conv2 (Change: 262.2291)",
+    "layer_name": "layer3.4.conv2.weight",
+    "channel_index": 200
+  },
+  {
+    "target": "layer3.0.conv3:651",
+    "type": "channel",
+    "influence_score": 241.58938598632812,
+    "description": "Channel 651 in layer3.0.conv3 (Change: 241.5894)",
+    "layer_name": "layer3.0.conv3.weight",
+    "channel_index": 651
+  },
+  {
+    "target": "layer4.0.conv2:390",
+    "type": "channel",
+    "influence_score": 186.58206176757812,
+    "description": "Channel 390 in layer4.0.conv2 (Change: 186.5821)",
+    "layer_name": "layer4.0.conv2.weight",
+    "channel_index": 390
+  },
+  {
+    "target": "conv1:35",
+    "type": "channel",
+    "influence_score": 161.6789093017578,
+    "description": "Channel 35 in conv1 (Change: 161.6789)",
+    "layer_name": "conv1.weight",
+    "channel_index": 35
+  },
+  {
+    "target": "layer3.0.conv2:175",
+    "type": "channel",
+    "influence_score": 154.61886596679688,
+    "description": "Channel 175 in layer3.0.conv2 (Change: 154.6189)",
+    "layer_name": "layer3.0.conv2.weight",
+    "channel_index": 175
+  },
+  {
+    "target": "layer3.0.conv3:20",
+    "type": "channel",
+    "influence_score": 128.7906036376953,
+    "description": "Channel 20 in layer3.0.conv3 (Change: 128.7906)",
+    "layer_name": "layer3.0.conv3.weight",
+    "channel_index": 20
+  },
+  {
+    "target": "layer2.0.conv2:34",
+    "type": "channel",
+    "influence_score": 101.60781860351562,
+    "description": "Channel 34 in layer2.0.conv2 (Change: 101.6078)",
+    "layer_name": "layer2.0.conv2.weight",
+    "channel_index": 34
+  },
+  {
+    "target": "layer3.0.conv2:230",
+    "type": "channel",
+    "influence_score": 96.54708862304688,
+    "description": "Channel 230 in layer3.0.conv2 (Change: 96.5471)",
+    "layer_name": "layer3.0.conv2.weight",
+    "channel_index": 230
+  },
+  {
+    "target": "layer4.1.conv2:23",
+    "type": "channel",
+    "influence_score": 94.96405792236328,
+    "description": "Channel 23 in layer4.1.conv2 (Change: 94.9641)",
+    "layer_name": "layer4.1.conv2.weight",
+    "channel_index": 23
+  },
+  {
+    "target": "layer3.0.conv2:56",
+    "type": "channel",
+    "influence_score": 86.99658966064453,
+    "description": "Channel 56 in layer3.0.conv2 (Change: 86.9966)",
+    "layer_name": "layer3.0.conv2.weight",
+    "channel_index": 56
+  },
+  {
+    "target": "conv1",
+    "type": "layer",
+    "influence_score": 25.334697723388672,
+    "description": "Layer conv1 (Change: 25.3347)",
+    "layer_name": "conv1.weight"
+  },
+  {
+    "target": "layer3.0.conv3",
+    "type": "layer",
+    "influence_score": 8.306943893432617,
+    "description": "Layer layer3.0.conv3 (Change: 8.3069)",
+    "layer_name": "layer3.0.conv3.weight"
+  },
+  {
+    "target": "layer3.5.conv2",
+    "type": "layer",
+    "influence_score": 5.749016284942627,
+    "description": "Layer layer3.5.conv2 (Change: 5.7490)",
+    "layer_name": "layer3.5.conv2.weight"
+  },
+  {
+    "target": "layer3.1.conv2",
+    "type": "layer",
+    "influence_score": 5.319070816040039,
+    "description": "Layer layer3.1.conv2 (Change: 5.3191)",
+    "layer_name": "layer3.1.conv2.weight"
+  },
+  {
+    "target": "layer3.0.conv2",
+    "type": "layer",
+    "influence_score": 5.211496353149414,
+    "description": "Layer layer3.0.conv2 (Change: 5.2115)",
+    "layer_name": "layer3.0.conv2.weight"
+  },
+  {
+    "target": "layer4.0.conv2",
+    "type": "layer",
+    "influence_score": 4.673312187194824,
+    "description": "Layer layer4.0.conv2 (Change: 4.6733)",
+    "layer_name": "layer4.0.conv2.weight"
+  },
+  {
+    "target": "layer2.3.conv2",
+    "type": "layer",
+    "influence_score": 4.461885452270508,
+    "description": "Layer layer2.3.conv2 (Change: 4.4619)",
+    "layer_name": "layer2.3.conv2.weight"
+  },
+  {
+    "target": "layer3.4.conv2",
+    "type": "layer",
+    "influence_score": 4.363691329956055,
+    "description": "Layer layer3.4.conv2 (Change: 4.3637)",
+    "layer_name": "layer3.4.conv2.weight"
+  },
+  {
+    "target": "layer2.0.conv2",
+    "type": "layer",
+    "influence_score": 4.360262393951416,
+    "description": "Layer layer2.0.conv2 (Change: 4.3603)",
+    "layer_name": "layer2.0.conv2.weight"
+  },
+  {
+    "target": "layer4.1.conv2",
+    "type": "layer",
+    "influence_score": 4.231784820556641,
+    "description": "Layer layer4.1.conv2 (Change: 4.2318)",
+    "layer_name": "layer4.1.conv2.weight"
+  }
+]
