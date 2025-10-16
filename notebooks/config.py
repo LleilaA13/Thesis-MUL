@@ -9,5 +9,6 @@ class Config:
     # Model paths
     UNLEARNED_MODEL = f"{BASE_DIR}/experiments/results/good_results/random_forgetting_10percent_RL_tweak_conservative/RLcheckpoint.pth.tar"
     PRETRAINED_MODEL = f"{BASE_DIR}/experiments/models/resnet50_pretrained.pth"
+    EVAL_UNLEARNED_MODEL = f"{BASE_DIR}/experiments/results/good_results/random_forgetting_10percent_RL_tweak_conservative/RLeval_result.pth.tar"
 
-    # Add more config variables as needed for other experiments or ratios
+
