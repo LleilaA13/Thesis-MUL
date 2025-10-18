@@ -1,0 +1,25 @@
+{
+  "analysis_type": "real_weight_comparison",
+  "timestamp": "2025-10-18T20:05:24.081882",
+  "model_info": {
+    "architecture": "ResNet50",
+    "total_parameters": 23917832,
+    "analyzed_layers": 161
+  },
+  "top_influences": {
+    "most_influenced_layer": "layer3.1.bn1.bias",
+    "max_layer_change": 12.331517219543457,
+    "most_influenced_channel": "layer3.5.conv3.weight_ch359",
+    "max_channel_change": 1171.401611328125,
+    "most_influenced_weight": "layer3.5.conv3.weight_ch359_w152",
+    "max_weight_change": 298084.0
+  },
+  "statistics": {
+    "layers_analyzed": 161,
+    "channels_analyzed": 10368,
+    "weights_analyzed": 200,
+    "avg_layer_change": 1.3584952517325835,
+    "avg_channel_change": 3.618441420894714,
+    "avg_weight_change": 10291.704517378806
+  }
+}
