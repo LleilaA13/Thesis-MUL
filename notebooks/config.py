@@ -65,6 +65,6 @@ class Config:
 
     #INCEPTIONV3 CATS:
     INCEPTIONV3_CATS_05_PATH = f"{BASE_DIR}/class_wise_forgetting/result/RLeval_inception05_cats.pth.tar"
-    INCEPTIONV3_CAYS_03_PATH = f"{BASE_DIR}/class_wise_forgetting/result/RLeval_inception03_cats.pth.tar"
+    INCEPTIONV3_CATS_03_PATH = f"{BASE_DIR}/class_wise_forgetting/result/RLeval_inception03_cats.pth.tar"
 
     
