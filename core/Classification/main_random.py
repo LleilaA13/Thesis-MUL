@@ -111,6 +111,23 @@ def main():
 
     print(f"number of retain dataset {len(retain_dataset)}")
     print(f"number of forget dataset {len(forget_dataset)}")
+    
+    # Save forgotten indices for later extraction of forgotten images
+    original_dataset = train_loader_full.dataset
+    if hasattr(original_dataset, 'targets'):
+        all_targets = torch.tensor(original_dataset.targets)
+    else:
+        all_targets = torch.tensor(original_dataset.labels)
+    
+    # Find indices where targets were marked as forgotten (negative values)
+    forgotten_indices = torch.where(all_targets < 0)[0]
+    
+    # Save to file
+    os.makedirs(args.save_dir, exist_ok=True)
+    forgotten_indices_path = os.path.join(args.save_dir, "forgotten_indices.pt")
+    torch.save(forgotten_indices.tolist(), forgotten_indices_path)
+    print(f"Saved {len(forgotten_indices)} forgotten data indices to {forgotten_indices_path}")
+    
     unlearn_data_loaders = OrderedDict(
         retain=retain_loader, forget=forget_loader, val=val_loader, test=test_loader
     )
