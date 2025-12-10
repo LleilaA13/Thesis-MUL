@@ -51,3 +51,4 @@ masks/
 *.h5
 results/*/
 models/*/
+models/*/
