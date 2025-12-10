@@ -1,130 +1,89 @@
-# Thesis-MUL: Saliency-Based Machine Unlearning with Feature Visualization
+# Thesis-MUL: Saliency-Based Machine Unlearning
 
-This repository contains the implementation and experiments for my thesis research on the intersection of machine unlearning and feature visualization. The work explores how Saliency-based Unlearning (SalUn) affects internal neural representations and demonstrates the critical role of feature visualization in validating knowledge removal.
+This repository implements and evaluates saliency-based machine unlearning (SalUn) with a focus on two experiment families:
+- **Class-wise forgetting**: remove specific semantic classes (cats, dogs, vehicles).
+- **Random-data forgetting**: remove random subsets (10/20/30%) of Tiny ImageNet.
 
-## Overview
+The codebase pairs quantitative evaluation with feature visualization (Lucent) to verify whether knowledge was actually erased inside the network.
 
-Machine unlearning has become essential for privacy compliance and responsible AI deployment. This research investigates how targeted knowledge removal manifests in the internal representations of deep neural networks, using feature visualization as both a diagnostic tool and validation mechanism for unlearning effectiveness.
+## Quick Start
 
-## Research Focus
+```bash
+conda env create -f environment.yml
+conda activate salun
 
-The thesis explores the fundamental relationship between:
-- **Feature Visualization**: Understanding how networks encode visual concepts
-- **Machine Unlearning**: Selectively removing specific knowledge without complete retraining
-- **Representational Analysis**: Examining how unlearning affects neural activations across network layers
+# Typical data layout
+datasets/tiny-imagenet-200/
 
-## Experimental Setup
-
-### Architecture 1: InceptionV3 + ImageNet Cat Classes
-- **Model**: Pre-trained InceptionV3 (via Lucent implementation)
-- **Dataset**: ImageNet
-- **Target Classes**: Cat breeds (classes 281-285)
-  - Tabby cats
-  - Persian cats  
-  - Siamese cats
-  - Egyptian cats
-  - Cougar/mountain lions
-- **Visualization Tool**: Lucent for activation maximization and layer analysis
-
-### Architecture 2: ResNet50 + Vehicle Classification
-- **Model**: ResNet50
-- **Task**: Vehicle classification and forgetting
-- **Focus**: Automotive category removal while preserving other vehicle classes
-- **Files**: Results stored in `results/resnet50_vehicles_forgetting/`
-
-## Methodology: SalUn (Saliency-based Unlearning)
-
-### Core Approach
-1. **Saliency Computation**: Calculate gradient magnitudes for target classes
-2. **Weight Selection**: Identify most influential parameters for forget classes  
-3. **Selective Modification**: Fine-tune only salient weights while freezing others
-4. **Random Label Assignment**: Assign random labels to forget-set samples during retraining
-
-### Key Innovation
-Unlike traditional approaches that modify all parameters, SalUn targets only the most relevant weights, achieving:
-- Efficient knowledge removal
-- Preserved performance on retained classes
-- Computational efficiency compared to full retraining
-
-## Feature Visualization Analysis
-
-### Pre/Post Unlearning Comparisons
-- **Layer-wise Analysis**: Examine changes from early edge detectors to high-level semantics
-- **Activation Patterns**: Compare neuron responses before and after unlearning
-- **Feature Maps**: Visualize how targeted concepts are erased from internal representations
-
-### Validation Framework
-- **Traditional Metrics**: Classification accuracy on forget/retain sets
-- **Visual Validation**: Feature visualization reveals residual knowledge invisible to accuracy metrics
-- **Completeness Assessment**: Identify incomplete unlearning through activation analysis
-
-## Repository Structure
-
-```
-├── results/
-│   └── resnet50_vehicles_forgetting/
-│       ├── 0checkpoint.pth.tar          # Model checkpoints
-│       └── 0model_SA_best.pth.tar       # Best saliency-aware model
-├── notebooks/                           # Jupyter notebooks for experiments
-├── src/                                # Source code implementation
-└── visualizations/                     # Generated feature visualizations
+# Run a random-data forgetting notebook
+jupyter notebook notebooks/random_data/20_random_data.ipynb
 ```
 
-## Key Findings
+## Repository Map (organized by forgetting mode)
 
-### 1. Visualization as Validation
-Feature visualization provides superior validation for unlearning completeness compared to accuracy metrics alone, revealing subtle knowledge retention patterns.
+```
+experiments/
+├── class_wise/
+│   ├── masks/            # Saliency masks per class family
+│   ├── models/           # Class-wise checkpoints
+│   ├── indices/          # Forget-set indices & masks
+│   ├── scripts/          # Training/unlearning entrypoints
+│   └── notebooks/        # (reserved) class-wise notebooks
+├── random_data/
+│   ├── masks/            # Masks for random 10/20/30% forgetting
+│   ├── results/          # Quantitative + good_results
+│   ├── forgotten_images/ # Exported forgotten samples
+│   ├── scripts/          # Pipelines for random forgetting
+│   └── notebooks/        # (reserved) random-data notebooks
+└── common/
+   └── resnet50_pretrained.pth  # Base model
 
-### 2. Multi-Layer Impact
-Effective unlearning requires coordinated changes across network layers - incomplete removal often shows residual activations in deeper layers.
+notebooks/
+├── random_data/          # 10/20/30_random_data, comparison_experiments, config.py
+├── class_wise/           # Resnet18/, resnet-50/, inceptionv3/, legacy/
+└── common/               # diversity, feature_inversion, modelzoo, neuron_interaction, tutorial
 
-### 3. Architecture Generalizability
-SalUn demonstrates effectiveness across different architectures (InceptionV3, ResNet50) and domains (ImageNet classification, vehicle recognition).
+src/                      # Training, data, utils
+scripts/                  # Analysis helpers (forgotten data, visualization)
+labels/, datasets/        # Tiny ImageNet labels/data
+models/, results/, visuals, plots  # Outputs and figures
+```
 
-### 4. Representational Understanding
-The research establishes that understanding internal feature dynamics is crucial for developing trustworthy unlearning methods.
+## Key Entry Points
 
-## Technologies Used
+- **Random-data forgetting notebooks**: `notebooks/random_data/10_random_data.ipynb`, `20_random_data.ipynb`, `30_random_data.ipynb`, `comparison_experiments.ipynb`
+- **Class-wise notebooks**: `notebooks/class_wise/resnet-50/…`, `notebooks/class_wise/Resnet18/…`, `notebooks/class_wise/inceptionv3/…` (legacy variants kept in `notebooks/class_wise/legacy/`)
+- **Scripts (class-wise)**: `experiments/class_wise/scripts/resnet50_unlearn_*.py`, `generate_all_masks.py`, `generate_mask_class.py`, `main_random_class.py`
+- **Scripts (random-data)**: see `experiments/random_data/scripts/` (add new runs here if needed)
+- **Base model**: `experiments/common/resnet50_pretrained.pth`
 
-- **Deep Learning**: PyTorch
-- **Visualization**: Lucent (modified InceptionV3 implementation)
-- **Unlearning**: SalUn implementation
-- **Analysis**: Jupyter notebooks for experimental workflows
-- **Model Storage**: Git LFS for large model files (*.pth.tar)
+## Data & Models
 
+- Dataset: Tiny ImageNet under `datasets/tiny-imagenet-200/`
+- Forget-set metadata: `experiments/class_wise/indices/*.pt`
+- Masks: `experiments/class_wise/masks/` and `experiments/random_data/masks/`
+- Checkpoints: `experiments/class_wise/models/` plus base model in `experiments/common/`
+- Results: `experiments/random_data/results/good_results/` contains RL and conservative variants
 
-## Thesis Contributions
+## Workflow
 
-1. **Novel Framework**: Links representational analysis with privacy-preserving machine learning
-2. **Validation Methodology**: Establishes feature visualization as essential for unlearning verification
-3. **Multi-Architecture Analysis**: Demonstrates generalizability across network designs
-4. **Practical Applications**: Provides tools for trustworthy knowledge removal in production systems
+1) Choose forgetting mode
+  - Class-wise: run scripts in `experiments/class_wise/scripts/`
+  - Random-data: run notebooks in `notebooks/random_data/`
 
-## Future Work
+2) Train/unlearn
+  - Use SalUn with random-label (RL) variants (see notebook configs)
 
-- Extension to other architectural families (Transformers, Vision Transformers)
-- Real-world deployment scenarios and privacy guarantees
-- Automated detection of incomplete unlearning through visualization analysis
-- Integration with differential privacy frameworks
+3) Validate
+  - Quantitative: accuracy on retain vs forget splits (stored in results)
+  - Qualitative: Lucent activation grids and neuron visualizations (common notebooks)
+
+## Notes
+
+- Large artifacts are ignored by `.gitignore`; keep big checkpoints under `experiments/` or `models/`.
+- `CLEANUP_GUIDE.md` and `CLEANUP_SUMMARY.md` describe how the repo was reorganized.
+- Legacy class-wise notebooks are preserved under `notebooks/class_wise/legacy/` for reference.
 
 ## License
 
-MIT License - See LICENSE file for details
-
----
-
-*This repository supports the thesis research on "Saliency-Based Machine Unlearning with Feature Visualization Analysis" demonstrating how internal neural representations change during targeted knowledge removal.*
-This repository contains the official code and experimental results my thesis porject. The project investigates the internal changes in a ResNet-50 model trained on TinyImageNet when subjected to data forgetting, specifically through random data removal, using SalUn.
-
-The primary goal is to move beyond surface-level accuracy metrics and analyze the mechanistic impact of unlearning on the model's weights and learned features. We use saliency-based unlearning techniques and visualize the effects using feature visualization tools like Lucent.
-
-
-   Machine Unlearning Implementation: Implements a Random Labels (RL) unlearning strategy to force a model to "forget" a subset of its training data.
-
-   Targeted Data Forgetting: Scripts to forget a random 10%, 20%, or 30% of the TinyImageNet dataset.
-
-   Weight Influence Analysis: The framework is designed to compare the model's weights before and after unlearning to identify which layers and channels are most affected.
-
-   Feature Visualization: Integrates with the Lucent library to provide a qualitative understanding of how a neuron's "preferred" visual patterns change after unlearning.
-
-   Comprehensive Experiment Suite: Includes scripts for running various unlearning configurations (e.g., conservative, aggressive) and evaluating their impact on retain and forget set accuracy.
+MIT License. See `LICENSE`.
