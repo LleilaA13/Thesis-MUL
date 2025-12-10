@@ -1,0 +1,62 @@
+[
+  {
+    "target": "layer3_5_conv3:666",
+    "type": "channel"
+  },
+  {
+    "target": "layer4_0_conv3:1084",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_3_conv3:614",
+    "type": "channel"
+  },
+  {
+    "target": "layer2_3_conv3:231",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_0_conv3:226",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_0_conv3:501",
+    "type": "channel"
+  },
+  {
+    "target": "layer2_0_conv1:92",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_2_conv1:187",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_5_conv3:359",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_2_conv3:366",
+    "type": "channel"
+  },
+  {
+    "target": "layer4_0_conv3:0",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_1_conv2:112",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_5_conv3:331",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_2_conv3:668",
+    "type": "channel"
+  },
+  {
+    "target": "layer3_4_conv3:59",
+    "type": "channel"
+  }
+]
